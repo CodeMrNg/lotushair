@@ -77,7 +77,8 @@ def member_dashboard(request):
     payments = member.payments.all()[:8]
     total_paid = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     progress = min(int((group.current_day / group.cycle_days) * 100), 100) if group.cycle_days else 0
-    cycle_ends_on = group.starts_on + timezone.timedelta(days=max(group.cycle_days - 1, 0))
+    cycle_starts_on = group.current_cycle_start
+    cycle_ends_on = group.current_cycle_end
     today = timezone.localdate()
     selected_month = request.GET.get("calendar", "")
     try:
@@ -91,13 +92,13 @@ def member_dashboard(request):
         + timezone.timedelta(days=1)
     ).replace(day=1)
     cycle_dates = {
-        group.starts_on + timezone.timedelta(days=offset)
+        cycle_starts_on + timezone.timedelta(days=offset)
         for offset in range(max(group.cycle_days, 0))
     }
     next_beneficiary = group.next_beneficiary()
     delivery_dates = {}
     for group_member in group_members:
-        group_member.delivery_date = group.starts_on + timezone.timedelta(days=max(group_member.rank - 1, 0))
+        group_member.delivery_date = cycle_starts_on + timezone.timedelta(days=max(group_member.rank - 1, 0))
         delivery_dates[group_member.delivery_date] = group_member
         if next_beneficiary and group_member.id == next_beneficiary.id:
             group_member.delivery_status = "Prochain"
@@ -140,6 +141,7 @@ def member_dashboard(request):
             "payments": payments,
             "total_paid": total_paid,
             "progress": progress,
+            "cycle_starts_on": cycle_starts_on,
             "cycle_ends_on": cycle_ends_on,
             "next_beneficiary": next_beneficiary,
             "calendar_weeks": calendar_weeks,

@@ -31,8 +31,25 @@ class RistourneGroup(models.Model):
 
     @property
     def current_day(self):
-        elapsed = (timezone.localdate() - self.starts_on).days + 1
-        return min(max(elapsed, 1), self.cycle_days)
+        if not self.cycle_days:
+            return 1
+        elapsed = (timezone.localdate() - self.starts_on).days
+        if elapsed < 0:
+            return 1
+        return (elapsed % self.cycle_days) + 1
+
+    @property
+    def current_cycle_start(self):
+        if not self.cycle_days:
+            return self.starts_on
+        elapsed = (timezone.localdate() - self.starts_on).days
+        if elapsed < 0:
+            return self.starts_on
+        return self.starts_on + timezone.timedelta(days=(elapsed // self.cycle_days) * self.cycle_days)
+
+    @property
+    def current_cycle_end(self):
+        return self.current_cycle_start + timezone.timedelta(days=max(self.cycle_days - 1, 0))
 
     def ordered_members(self):
         return self.members.filter(is_active=True).order_by("rank", "full_name")

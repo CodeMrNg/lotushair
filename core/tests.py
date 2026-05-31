@@ -79,4 +79,21 @@ class LotusHairFlowTests(TestCase):
         self.assertContains(response, "?calendar=2026-05")
         self.assertContains(response, "?calendar=2026-07")
 
+    def test_member_dates_use_current_group_cycle(self):
+        self.group.cycle_days = 15
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=16)
+        self.group.save()
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertEqual(response.context["cycle_starts_on"], self.group.current_cycle_start)
+        self.assertEqual(response.context["cycle_ends_on"], self.group.current_cycle_end)
+        self.assertContains(response, self.group.current_cycle_start.strftime("%Y-%m-%d"))
+
 # Create your tests here.
