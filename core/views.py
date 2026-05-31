@@ -169,7 +169,7 @@ def member_catalog(request):
     query = request.GET.get("q", "").strip()
     wigs = WigCatalog.objects.prefetch_related("gallery_images")
     if query:
-        wigs = wigs.filter(Q(name__icontains=query) | Q(description__icontains=query) | Q(colors__icontains=query))
+        wigs = wigs.filter(Q(name__icontains=query) | Q(description__icontains=query) | Q(colors__icontains=query) | Q(sizes__icontains=query))
     return render(
         request,
         "core/member_catalog.html",
@@ -192,13 +192,19 @@ def choose_wig(request, wig_id):
         return redirect("member_catalog")
     wig = get_object_or_404(WigCatalog, id=wig_id, is_available=True)
     selected_color = request.POST.get("color", "").strip()
+    selected_size = request.POST.get("size", "").strip()
     available_colors = wig.available_colors
+    available_sizes = wig.available_sizes
     if available_colors and selected_color not in available_colors:
         messages.error(request, "Veuillez choisir une couleur disponible pour ce modele.")
         return redirect("member_catalog")
-    WigChoice.objects.create(member=request.member, wig=wig, color=selected_color)
+    if available_sizes and selected_size not in available_sizes:
+        messages.error(request, "Veuillez choisir une taille disponible pour ce modele.")
+        return redirect("member_catalog")
+    WigChoice.objects.create(member=request.member, wig=wig, color=selected_color, size=selected_size)
     color_suffix = f" en {selected_color}" if selected_color else ""
-    messages.success(request, f"{wig.name}{color_suffix} est maintenant votre choix de perruque.")
+    size_suffix = f", taille {selected_size}" if selected_size else ""
+    messages.success(request, f"{wig.name}{color_suffix}{size_suffix} est maintenant votre choix de perruque.")
     return redirect("member_catalog")
 
 

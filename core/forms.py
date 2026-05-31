@@ -38,9 +38,10 @@ class PaymentForm(forms.ModelForm):
 class WigForm(forms.ModelForm):
     class Meta:
         model = WigCatalog
-        fields = ["name", "description", "image", "colors", "is_available"]
+        fields = ["name", "description", "image", "colors", "sizes", "is_available"]
         widgets = {
             "colors": forms.TextInput(attrs={"placeholder": "Noir, Marron, Blond, Bordeaux"}),
+            "sizes": forms.TextInput(attrs={"placeholder": "S, M, L, XL ou 10 pouces, 12 pouces, 14 pouces"}),
         }
 
 

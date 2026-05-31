@@ -159,6 +159,7 @@ class WigCatalog(models.Model):
     image = models.ImageField("image", upload_to="catalogue/", blank=True)
     image_url = models.URLField("image", blank=True)
     colors = models.CharField("couleurs disponibles", max_length=255, blank=True, help_text="Separez les couleurs par des virgules.")
+    sizes = models.CharField("tailles disponibles", max_length=255, blank=True, help_text="Separez les tailles par des virgules.")
     is_available = models.BooleanField("disponible", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -173,6 +174,10 @@ class WigCatalog(models.Model):
     @property
     def available_colors(self):
         return [color.strip() for color in self.colors.split(",") if color.strip()]
+
+    @property
+    def available_sizes(self):
+        return [size.strip() for size in self.sizes.split(",") if size.strip()]
 
     @property
     def display_image_url(self):
@@ -204,6 +209,7 @@ class WigChoice(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="wig_choices")
     wig = models.ForeignKey(WigCatalog, on_delete=models.CASCADE, related_name="choices")
     color = models.CharField("couleur choisie", max_length=80, blank=True)
+    size = models.CharField("taille choisie", max_length=80, blank=True)
     selected_at = models.DateTimeField(default=timezone.now)
     is_final = models.BooleanField("choix final", default=False)
 

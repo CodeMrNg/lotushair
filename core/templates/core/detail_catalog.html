@@ -18,6 +18,7 @@
       <div class="detail-grid">
         <div class="detail-item"><small>Modele</small><strong>{{ wig.name }}</strong></div>
         <div class="detail-item"><small>Couleurs</small><strong>{{ wig.colors|default:"Aucune" }}</strong></div>
+        <div class="detail-item"><small>Tailles</small><strong>{{ wig.sizes|default:"Aucune" }}</strong></div>
         <div class="detail-item"><small>Statut</small><strong>{% if wig.is_available %}Disponible{% else %}Indisponible{% endif %}</strong></div>
         <div class="detail-item"><small>Images couleur</small><strong>{{ wig.gallery_images.all|length }}</strong></div>
       </div>

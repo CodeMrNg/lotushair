@@ -19,6 +19,7 @@
       <div class="detail-item"><small>Versements</small><strong>{{ member.payments_done }}/{{ member.group.expected_payments }}</strong></div>
       <div class="detail-item"><small>Choix</small><strong>{% if selected_choice %}{{ selected_choice.wig.name }}{% else %}Aucun{% endif %}</strong></div>
       <div class="detail-item"><small>Couleur</small><strong>{% if selected_choice.color %}{{ selected_choice.color }}{% else %}Aucune{% endif %}</strong></div>
+      <div class="detail-item"><small>Taille</small><strong>{% if selected_choice.size %}{{ selected_choice.size }}{% else %}Aucune{% endif %}</strong></div>
       <div class="detail-item"><small>Actif</small><strong>{% if member.is_active %}Oui{% else %}Non{% endif %}</strong></div>
     </div>
     <div class="member-choice-detail">
@@ -34,6 +35,7 @@
         {% if selected_choice %}
           <h2>{{ selected_choice.wig.name }}</h2>
           <p>Couleur choisie : <strong>{{ selected_choice.color|default:"Non precisee" }}</strong></p>
+          <p>Taille choisie : <strong>{{ selected_choice.size|default:"Non precisee" }}</strong></p>
           {% if selected_choice_image %}
             <p>Image affichee : <strong>{{ selected_choice_image.color }}</strong></p>
           {% else %}

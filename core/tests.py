@@ -69,17 +69,32 @@ class LotusHairFlowTests(TestCase):
     def test_member_choose_wig_records_color(self):
         self.member.accepted_terms_at = timezone.now()
         self.member.save()
-        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron")
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron", sizes="S, M, L")
 
         session = self.client.session
         session["member_id"] = self.member.id
         session.save()
 
-        response = self.client.post(reverse("choose_wig", args=[wig.id]), {"color": "Marron"})
+        response = self.client.post(reverse("choose_wig", args=[wig.id]), {"color": "Marron", "size": "M"})
 
         self.assertRedirects(response, reverse("member_catalog"))
         choice = WigChoice.objects.get(member=self.member, wig=wig)
         self.assertEqual(choice.color, "Marron")
+        self.assertEqual(choice.size, "M")
+
+    def test_member_cannot_choose_unavailable_size(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron", sizes="S, M")
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.post(reverse("choose_wig", args=[wig.id]), {"color": "Marron", "size": "XL"})
+
+        self.assertRedirects(response, reverse("member_catalog"))
+        self.assertFalse(WigChoice.objects.filter(member=self.member, wig=wig).exists())
 
     def test_member_cannot_choose_unavailable_color(self):
         self.member.accepted_terms_at = timezone.now()

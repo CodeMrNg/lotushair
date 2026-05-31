@@ -6,18 +6,21 @@
     <div>
       <p class="eyebrow" style="color: var(--color-gold-metallic);">Collection Exclusive</p>
       <h1>Catalogue de Perruques</h1>
-      <p>Découvrez nos modèles d'exception. Sélectionnez votre perruque préférée et validez votre choix.</p>
+      <p>Decouvrez nos modeles d'exception. Selectionnez votre perruque preferee et validez votre choix.</p>
     </div>
     {% if selected %}
       <div style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); padding: 12px 20px; border-radius: var(--radius-md); text-align: right;">
-        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-gold-metallic); display: block; font-weight: 700;">Sélection Active</span>
+        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-gold-metallic); display: block; font-weight: 700;">Selection active</span>
         <strong style="font-family: var(--font-heading); font-size: 1.25rem; color: #fff;">{{ selected.name }}</strong>
         {% if selected_choice.color %}
           <small style="display: block; color: rgba(255,255,255,0.82); font-weight: 700;">Couleur : {{ selected_choice.color }}</small>
         {% endif %}
+        {% if selected_choice.size %}
+          <small style="display: block; color: rgba(255,255,255,0.82); font-weight: 700;">Taille : {{ selected_choice.size }}</small>
+        {% endif %}
       </div>
     {% else %}
-      <span class="badge" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25);">Aucun modèle choisi</span>
+      <span class="badge" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25);">Aucun modele choisi</span>
     {% endif %}
   </div>
 
@@ -30,7 +33,7 @@
   <form method="get" class="dashboard-toolbar" style="margin-bottom: 20px;">
     <label class="search-pill" style="width: min(520px, 100%);">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un modele...">
+      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un modele, une couleur ou une taille...">
     </label>
     <button class="btn primary" type="submit">Rechercher</button>
     {% if query %}
@@ -42,17 +45,17 @@
     {% for wig in wigs %}
       <article class="wig-card" {% if selected == wig and selected_choice.color %}data-selected-color="{{ selected_choice.color }}"{% endif %} {% if selected == wig %}style="border: 2px solid var(--color-gold-metallic); position: relative; box-shadow: var(--shadow-md);"{% endif %}>
         {% if selected == wig %}
-          <span class="badge" style="position: absolute; top: 12px; right: 12px; background: var(--color-gold-metallic); color: #fff; border: none; z-index: 2; box-shadow: var(--shadow-sm);">Sélectionné</span>
+          <span class="badge" style="position: absolute; top: 12px; right: 12px; background: var(--color-gold-metallic); color: #fff; border: none; z-index: 2; box-shadow: var(--shadow-sm);">Selectionne</span>
         {% endif %}
-        
+
         <div class="wig-image-container">
           <div class="wig-carousel" data-wig-carousel>
             {% if wig.gallery_images.all %}
               {% for item in wig.gallery_images.all %}
                 <img class="wig-slide {% if forloop.first %}is-active{% endif %}" data-color="{{ item.color }}" src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
               {% endfor %}
-              <button class="wig-carousel-btn prev" type="button" data-carousel-prev aria-label="Image precedente">‹</button>
-              <button class="wig-carousel-btn next" type="button" data-carousel-next aria-label="Image suivante">›</button>
+              <button class="wig-carousel-btn prev" type="button" data-carousel-prev aria-label="Image precedente">&lsaquo;</button>
+              <button class="wig-carousel-btn next" type="button" data-carousel-next aria-label="Image suivante">&rsaquo;</button>
               <span class="wig-carousel-color" data-carousel-color></span>
             {% elif wig.display_image_url %}
               <img class="wig-slide is-active" src="{{ wig.display_image_url }}" alt="{{ wig.name }}">
@@ -61,7 +64,7 @@
             {% endif %}
           </div>
         </div>
-        
+
         <div class="wig-details">
           <h2 style="font-family: var(--font-heading); font-size: 1.35rem; color: var(--color-brand-plum); margin-bottom: 6px;">{{ wig.name }}</h2>
           <p style="font-size: 0.85rem; line-height: 1.5; color: var(--color-text-muted); margin-bottom: 16px;">{{ wig.description }}</p>
@@ -72,14 +75,21 @@
               {% endfor %}
             </div>
           {% endif %}
-          
+          {% if wig.available_sizes %}
+            <div class="color-options-preview" aria-label="Tailles disponibles">
+              {% for size in wig.available_sizes %}
+                <span>{{ size }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+
           <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
             <span class="availability {% if not wig.is_available %}off{% endif %}" style="margin: 0;">
               {% if wig.is_available %}Disponible{% else %}Indisponible{% endif %}
             </span>
           </div>
         </div>
-        
+
         {% if has_received_wig %}
           <div style="padding: 0 18px 18px 18px;">
             <button class="btn" disabled style="width: 100%; cursor: not-allowed; opacity: 0.72;">Choix bloque</button>
@@ -99,12 +109,26 @@
                   </select>
                 </label>
               {% endif %}
-              <button class="btn primary" type="submit" style="width: 100%;">Choisir ce modèle</button>
+              {% if wig.available_sizes %}
+                <label>
+                  <span>Taille</span>
+                  <select name="size" required>
+                    <option value="">Choisir une taille</option>
+                    {% for size in wig.available_sizes %}
+                      <option value="{{ size }}">{{ size }}</option>
+                    {% endfor %}
+                  </select>
+                </label>
+              {% endif %}
+              <button class="btn primary" type="submit" style="width: 100%;">Choisir ce modele</button>
             </form>
           {% else %}
             <div style="padding: 0 18px 18px 18px;">
               {% if selected_choice.color %}
                 <small style="display: block; margin-bottom: 10px; color: var(--color-brand-plum); font-weight: 800; text-align: center;">Couleur : {{ selected_choice.color }}</small>
+              {% endif %}
+              {% if selected_choice.size %}
+                <small style="display: block; margin-bottom: 10px; color: var(--color-brand-plum); font-weight: 800; text-align: center;">Taille : {{ selected_choice.size }}</small>
               {% endif %}
               <button class="btn" disabled style="width: 100%; cursor: not-allowed; background: var(--color-gold-light); color: var(--color-gold-hover); border-color: rgba(197, 160, 89, 0.3);">Votre choix actif</button>
             </div>
