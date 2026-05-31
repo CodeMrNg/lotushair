@@ -1,0 +1,176 @@
+{% extends "core/base.html" %}
+{% block title %}Mon tableau - Lotus Hair{% endblock %}
+{% block content %}
+<section class="page app-page">
+  <div class="dashboard-toolbar member-dashboard-toolbar">
+    <span></span>
+    <div class="mobile-toolbar-actions">
+      <time>{% now "d F Y" %}</time>
+      <button class="btn primary mobile-info-button" type="button" data-mobile-panel-open aria-controls="member-info-panel">
+        Infos du cycle
+      </button>
+    </div>
+  </div>
+
+  <div class="hero dashboard-hero">
+    <div>
+      <p class="eyebrow" style="color: var(--color-gold-metallic);">{{ group.name }}</p>
+      <h1>Bonjour, {{ member.full_name }}</h1>
+      <p>Cycle jour {{ group.current_day }} sur {{ group.cycle_days }}. Prochain bénéficiaire : <strong style="color: var(--color-gold-metallic);">{{ next_beneficiary.full_name|default:"À définir" }}</strong>.</p>
+    </div>
+    <div class="hero-aside">
+      <span class="badge" style="background: var(--color-gold-metallic); color: #fff; border: none;">{{ member.delivery_status }}</span>
+      <a class="btn primary" href="{% url 'member_catalog' %}">
+        Voir le catalogue
+      </a>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Versements</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      </div>
+      <strong>{{ member.payments_done }}</strong>
+      <small>Jours payés</small>
+    </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Jours restants</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <strong>{{ member.days_remaining }}</strong>
+      <small>Fin du cycle : {{ cycle_ends_on|date:"d F Y" }}</small>
+    </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Perruque</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <strong>{{ member.selected_wig.name|default:"Non choisie" }}</strong>
+      <small>Sélection active</small>
+    </article>
+  </div>
+
+  <section class="panel" style="margin-bottom: 28px;">
+    <div class="section-head" style="border: none; padding-bottom: 0; margin-bottom: 12px;">
+      <h2>Progression globale</h2>
+      <span style="font-weight: 700; color: var(--color-brand-plum);">{{ progress }}%</span>
+    </div>
+    <div class="progress"><span style="width: {{ progress }}%"></span></div>
+  </section>
+
+  <div class="split dashboard-split">
+    <section class="panel">
+      <div class="section-head">
+        <h2>Membres du groupe</h2>
+      </div>
+      <div class="list">
+        {% for item in group_members %}
+          <div class="row" style="padding: 10px 0;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--color-gold-light); font-size: 0.75rem; color: var(--color-brand-plum); font-weight: 700;">
+                {{ item.rank }}
+              </span>
+              <span style="font-weight: 600; color: var(--color-text-main);">{{ item.full_name }}</span>
+            </div>
+            <div style="display: grid; justify-items: end; gap: 4px;">
+              <span class="badge" style="background: var(--color-gold-light); color: var(--color-brand-plum); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">{{ item.delivery_status }}</span>
+              <small style="color: var(--color-text-muted); font-weight: 600;">{{ item.delivery_date_label }} {{ item.delivery_date|date:"d F Y" }}</small>
+            </div>
+          </div>
+        {% empty %}
+          <p>Aucun membre.</p>
+        {% endfor %}
+      </div>
+    </section>
+    
+    <section class="panel">
+      <div class="section-head">
+        <h2>Historique des paiements</h2>
+      </div>
+      <div class="list">
+        {% for payment in payments %}
+          <div class="row">
+            <div>
+              <span style="display: block; font-weight: 600; color: var(--color-text-main);">{{ payment.paid_on }}</span>
+              <small style="color: var(--color-text-muted);">{{ payment.amount }} FCFA</small>
+            </div>
+            {% if payment.status == 'confirmed' %}
+              <span class="badge" style="background: var(--color-success-bg); color: var(--color-success); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">Confirmé</span>
+            {% elif payment.status == 'pending' %}
+              <span class="badge" style="background: var(--color-warning-bg); color: var(--color-warning); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">En attente</span>
+            {% else %}
+              <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">{{ payment.get_status_display }}</span>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p>Aucun versement enregistré pour le moment.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
+
+{% block rightbar %}
+  <div class="mobile-modal-heading">
+    <span>Espace membre</span>
+    <strong>Suivi du cycle</strong>
+  </div>
+
+  <div class="profile-card member-summary-card">
+    <img src="/static/core/img/logo.jpeg" alt="Lotus Hair">
+    <strong>{{ member.full_name }}</strong>
+    <small>{{ group.name }}</small>
+    <a class="btn" href="{% url 'member_catalog' %}" style="border-color: var(--color-gold-metallic); color: var(--color-brand-plum);">
+      Modifier mon choix
+    </a>
+  </div>
+
+  <div class="calendar-card">
+    <div class="calendar-head">
+      <a href="?calendar={{ previous_calendar_month|date:'Y-m' }}&panel=cycle" aria-label="Mois precedent">‹</a>
+      <button type="button" aria-label="Mois précédent">‹</button>
+      <strong>{{ calendar_focus|date:"F Y" }}</strong>
+      <button type="button" aria-label="Mois suivant">›</button>
+      <a href="?calendar={{ next_calendar_month|date:'Y-m' }}&panel=cycle" aria-label="Mois suivant">›</a>
+    </div>
+    <div class="calendar-grid" aria-label="Calendrier du cycle">
+      <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
+      {% for week in calendar_weeks %}
+        {% for day in week %}
+          <time
+            datetime="{{ day.date|date:'Y-m-d' }}"
+            class="{% if not day.in_month %}muted{% endif %}{% if day.is_cycle %} cycle-day{% endif %}{% if day.is_delivery %} delivery-day{% endif %}{% if day.is_member_delivery %} member-delivery-day{% endif %}{% if day.is_today %} active{% endif %}"
+            {% if day.delivery_name %}title="Reception : {{ day.delivery_name }}"{% endif %}
+          >
+            {{ day.day }}
+          </time>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    <div class="calendar-legend" aria-label="Legende du calendrier">
+      <span><i class="cycle"></i>Cycle</span>
+      <span><i class="delivery"></i>Reception</span>
+      <span><i class="today"></i>Aujourd'hui</span>
+    </div>
+  </div>
+
+  <div class="mini-panel">
+    <h2>Rappels</h2>
+    <div class="reminder">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <p>Versement périodique : <strong>{{ group.contribution_amount }} FCFA</strong>.</p>
+    </div>
+    <div class="reminder">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <p>Jours restants dans ce cycle : <strong>{{ member.days_remaining }} jours</strong>.</p>
+    </div>
+    <div class="reminder">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <p>Modèle choisi : <strong>{{ member.selected_wig.name|default:"aucun" }}</strong>.</p>
+    </div>
+  </div>
+{% endblock %}

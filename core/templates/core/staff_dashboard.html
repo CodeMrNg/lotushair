@@ -1,0 +1,130 @@
+{% extends "core/base.html" %}
+{% block title %}Gestion - Lotus Hair{% endblock %}
+{% block content %}
+<section class="page app-page">
+  <div class="dashboard-toolbar">
+    <label class="search-pill">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" placeholder="Rechercher un membre ou un groupe...">
+    </label>
+    <time>{% now "d F Y" %}</time>
+  </div>
+
+  <div class="hero admin-hero dashboard-hero" style="background: linear-gradient(135deg, var(--color-brand-plum-light), #481926);">
+    <div>
+      <p class="eyebrow" style="color: var(--color-gold-metallic);">Administration</p>
+      <h1>Tableau de bord</h1>
+      <p>Suivi en temps réel des versements, de l'état des cotisations et des alertes de retard.</p>
+    </div>
+    <div class="actions" style="display: flex; gap: 12px; z-index: 1;">
+      <a class="btn primary" href="{% url 'manage_payments' %}" style="background: linear-gradient(135deg, var(--color-gold-metallic), var(--color-gold-hover));">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nouveau paiement
+      </a>
+      <a class="btn" href="{% url 'manage_members' %}" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25);">
+        Nouveau membre
+      </a>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Total Versements</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="12" y1="4" x2="12" y2="20"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+      </div>
+      <strong>{{ total_payments }} FCFA</strong>
+      <small>Montant total perçu</small>
+    </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Groupes Actifs</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <strong>{{ groups_count }}</strong>
+      <small>Cycles en cours</small>
+    </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Membres Actifs</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      </div>
+      <strong>{{ members_count }}</strong>
+      <small>Membres enregistrés</small>
+    </article>
+    <article class="stat {% if late_members|length > 0 %}danger{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Retards</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{% if late_members|length > 0 %}var(--color-danger){% else %}var(--color-gold-metallic){% endif %}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      </div>
+      <strong>{{ late_members|length }}</strong>
+      <small>Membres à relancer</small>
+    </article>
+  </div>
+
+  <div class="split">
+    <section class="panel">
+      <div class="section-head">
+        <h2>Aperçu des Groupes</h2>
+        <a class="link-btn" href="{% url 'manage_groups' %}">Gérer</a>
+      </div>
+      <div class="list">
+        {% for group in groups %}
+          <div class="row">
+            <span style="font-weight: 600;">{{ group.name }}</span>
+            <span class="badge" style="background: var(--color-gold-light); color: var(--color-brand-plum); border: none;">{{ group.member_count }} membres</span>
+          </div>
+        {% empty %}
+          <p style="color: var(--color-text-muted);">Aucun groupe actif.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <h2>Paiements récents</h2>
+        <a class="link-btn" href="{% url 'manage_payments' %}">Voir tout</a>
+      </div>
+      <div class="list">
+        {% for payment in recent_payments %}
+          <div class="row">
+            <div>
+              <span style="display: block; font-weight: 600;">{{ payment.member.full_name }}</span>
+              <small style="color: var(--color-text-muted);">{{ payment.member.group.name }}</small>
+            </div>
+            <em style="color: var(--color-success); font-weight: 700;">+ {{ payment.amount }} FCFA</em>
+          </div>
+        {% empty %}
+          <p style="color: var(--color-text-muted);">Aucun paiement enregistré récemment.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}
+
+{% block rightbar %}
+  <div class="profile-card">
+    <img src="/static/core/img/logo.jpeg" alt="Lotus Hair">
+    <strong>Administration</strong>
+    <small>{{ request.user.username }}</small>
+    <a class="btn primary" href="{% url 'manage_payments' %}" style="width: 100%;">
+      Saisir un paiement
+    </a>
+  </div>
+
+  <div class="mini-panel">
+    <h2>Actions rapides</h2>
+    <a class="quick-action" href="{% url 'manage_groups' %}">Gestion des Groupes</a>
+    <a class="quick-action" href="{% url 'manage_members' %}">Gestion des Membres</a>
+    <a class="quick-action" href="{% url 'manage_catalog' %}">Gestion du Catalogue</a>
+  </div>
+
+  <div class="mini-panel">
+    <h2>Alertes de gestion</h2>
+    <div class="reminder">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: {% if late_members|length > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <p>Il y a <strong>{{ late_members|length }} membre(s)</strong> en retard de cotisation.</p>
+    </div>
+  </div>
+{% endblock %}

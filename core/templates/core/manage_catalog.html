@@ -1,0 +1,41 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page" style="padding-top: 10px;">
+  <div class="section-head" style="align-items: center;">
+    <h1 style="margin: 0;">Gestion du Catalogue</h1>
+    <a class="btn" href="{% url 'staff_dashboard' %}" style="display: inline-flex; align-items: center; border-color: var(--color-border); color: var(--color-brand-plum);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour
+    </a>
+  </div>
+
+  <div class="split">
+    <form method="post" class="panel form-grid" style="border-top: 4px solid var(--color-brand-plum); padding: 28px;">
+      <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">Nouveau Modèle</h2>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn primary" type="submit" style="width: 100%; margin-top: 10px;">
+        Ajouter au catalogue
+      </button>
+    </form>
+
+    <section class="panel" style="padding: 28px;">
+      <h2 style="font-family: var(--font-heading); margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Modèles Enregistrés</h2>
+      <div class="list">
+        {% for wig in wigs %}
+          <div class="row" style="padding: 12px 0;">
+            <span style="font-weight: 600; color: var(--color-text-main);">{{ wig.name }}</span>
+            {% if wig.is_available %}
+              <span class="badge" style="background: var(--color-success-bg); color: var(--color-success); border: none;">Disponible</span>
+            {% else %}
+              <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: none;">Indisponible</span>
+            {% endif %}
+          </div>
+        {% empty %}
+          <p style="color: var(--color-text-muted); text-align: center; padding: 20px 0;">Aucun modèle dans le catalogue.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

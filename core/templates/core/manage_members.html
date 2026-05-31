@@ -1,0 +1,45 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page" style="padding-top: 10px;">
+  <div class="section-head" style="align-items: center;">
+    <h1 style="margin: 0;">Gestion des Membres</h1>
+    <a class="btn" href="{% url 'staff_dashboard' %}" style="display: inline-flex; align-items: center; border-color: var(--color-border); color: var(--color-brand-plum);">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Retour
+    </a>
+  </div>
+
+  <div class="split">
+    <form method="post" class="panel form-grid" style="border-top: 4px solid var(--color-brand-plum); padding: 28px;">
+      <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">Nouveau Membre</h2>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn primary" type="submit" style="width: 100%; margin-top: 10px;">
+        Ajouter le membre
+      </button>
+    </form>
+
+    <section class="panel" style="padding: 28px;">
+      <h2 style="font-family: var(--font-heading); margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Membres Inscrits</h2>
+      <div class="list">
+        {% for member in members %}
+          <div class="row" style="padding: 12px 0;">
+            <div>
+              <span style="display: block; font-weight: 600; color: var(--color-text-main);">{{ member.full_name }}</span>
+              <small style="color: var(--color-text-muted);">Groupe : {{ member.group.name }} | Rang : {{ member.rank }}</small>
+            </div>
+            <form method="post" action="{% url 'regenerate_code' member.id %}" style="margin: 0;">
+              {% csrf_token %}
+              <button class="btn" type="submit" style="min-height: 32px; padding: 0 12px; font-size: 0.75rem; border-color: rgba(197, 160, 89, 0.3); color: var(--color-brand-plum);">
+                Régénérer code
+              </button>
+            </form>
+          </div>
+        {% empty %}
+          <p style="color: var(--color-text-muted); text-align: center; padding: 20px 0;">Aucun membre enregistré.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

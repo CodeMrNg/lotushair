@@ -1,0 +1,86 @@
+{% extends "core/base.html" %}
+{% block title %}Catalogue - Lotus Hair{% endblock %}
+{% block content %}
+<section class="page" style="padding-top: 10px;">
+  <div class="hero catalog-hero" style="background: linear-gradient(135deg, var(--color-brand-plum-light), #703348);">
+    <div>
+      <p class="eyebrow" style="color: var(--color-gold-metallic);">Collection Exclusive</p>
+      <h1>Catalogue de Perruques</h1>
+      <p>Découvrez nos modèles d'exception. Sélectionnez votre perruque préférée et validez votre choix.</p>
+    </div>
+    {% if selected %}
+      <div style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.25); padding: 12px 20px; border-radius: var(--radius-md); text-align: right;">
+        <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--color-gold-metallic); display: block; font-weight: 700;">Sélection Active</span>
+        <strong style="font-family: var(--font-heading); font-size: 1.25rem; color: #fff;">{{ selected.name }}</strong>
+      </div>
+    {% else %}
+      <span class="badge" style="background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.25);">Aucun modèle choisi</span>
+    {% endif %}
+  </div>
+
+  {% if has_received_wig %}
+    <div class="message warning" style="margin-bottom: 20px;">
+      Vous avez deja recu votre perruque pour ce cycle. Le choix dans le catalogue est maintenant bloque.
+    </div>
+  {% endif %}
+
+  <form method="get" class="dashboard-toolbar" style="margin-bottom: 20px;">
+    <label class="search-pill" style="width: min(520px, 100%);">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un modele...">
+    </label>
+    <button class="btn primary" type="submit">Rechercher</button>
+    {% if query %}
+      <a class="btn" href="{% url 'member_catalog' %}">Effacer</a>
+    {% endif %}
+  </form>
+
+  <div class="catalog-grid">
+    {% for wig in wigs %}
+      <article class="wig-card" {% if selected == wig %}style="border: 2px solid var(--color-gold-metallic); position: relative; box-shadow: var(--shadow-md);"{% endif %}>
+        {% if selected == wig %}
+          <span class="badge" style="position: absolute; top: 12px; right: 12px; background: var(--color-gold-metallic); color: #fff; border: none; z-index: 2; box-shadow: var(--shadow-sm);">Sélectionné</span>
+        {% endif %}
+        
+        <div class="wig-image-container">
+          {% if wig.image_url %}
+            <img src="{{ wig.image_url }}" alt="{{ wig.name }}">
+          {% else %}
+            <div class="wig-placeholder">Lotus Hair</div>
+          {% endif %}
+        </div>
+        
+        <div class="wig-details">
+          <h2 style="font-family: var(--font-heading); font-size: 1.35rem; color: var(--color-brand-plum); margin-bottom: 6px;">{{ wig.name }}</h2>
+          <p style="font-size: 0.85rem; line-height: 1.5; color: var(--color-text-muted); margin-bottom: 16px;">{{ wig.description }}</p>
+          
+          <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between;">
+            <span class="availability {% if not wig.is_available %}off{% endif %}" style="margin: 0;">
+              {% if wig.is_available %}Disponible{% else %}Indisponible{% endif %}
+            </span>
+          </div>
+        </div>
+        
+        {% if has_received_wig %}
+          <div style="padding: 0 18px 18px 18px;">
+            <button class="btn" disabled style="width: 100%; cursor: not-allowed; opacity: 0.72;">Choix bloque</button>
+          </div>
+        {% elif wig.is_available %}
+          {% if selected != wig %}
+            <form method="post" action="{% url 'choose_wig' wig.id %}">
+              {% csrf_token %}
+              <button class="btn primary" type="submit" style="width: 100%;">Choisir ce modèle</button>
+            </form>
+          {% else %}
+            <div style="padding: 0 18px 18px 18px;">
+              <button class="btn" disabled style="width: 100%; cursor: not-allowed; background: var(--color-gold-light); color: var(--color-gold-hover); border-color: rgba(197, 160, 89, 0.3);">Votre choix actif</button>
+            </div>
+          {% endif %}
+        {% endif %}
+      </article>
+    {% empty %}
+      <p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-muted);">Aucun modele ne correspond a votre recherche.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
