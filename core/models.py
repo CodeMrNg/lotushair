@@ -123,8 +123,12 @@ class Member(models.Model):
 
     @property
     def selected_wig(self):
-        choice = self.wig_choices.select_related("wig").order_by("-selected_at").first()
+        choice = self.selected_wig_choice
         return choice.wig if choice else None
+
+    @property
+    def selected_wig_choice(self):
+        return self.wig_choices.select_related("wig").order_by("-selected_at").first()
 
 
 class Payment(models.Model):
@@ -152,7 +156,9 @@ class Payment(models.Model):
 class WigCatalog(models.Model):
     name = models.CharField("nom du modele", max_length=140)
     description = models.TextField("description")
+    image = models.ImageField("image", upload_to="catalogue/", blank=True)
     image_url = models.URLField("image", blank=True)
+    colors = models.CharField("couleurs disponibles", max_length=255, blank=True, help_text="Separez les couleurs par des virgules.")
     is_available = models.BooleanField("disponible", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -164,10 +170,40 @@ class WigCatalog(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def available_colors(self):
+        return [color.strip() for color in self.colors.split(",") if color.strip()]
+
+    @property
+    def display_image_url(self):
+        if self.image:
+            return self.image.url
+        first_gallery_image = self.gallery_images.first()
+        if first_gallery_image:
+            return first_gallery_image.image.url
+        return self.image_url
+
+
+class WigImage(models.Model):
+    wig = models.ForeignKey(WigCatalog, on_delete=models.CASCADE, related_name="gallery_images", verbose_name="modele")
+    color = models.CharField("couleur", max_length=80)
+    image = models.ImageField("image", upload_to="catalogue/couleurs/")
+    order = models.PositiveIntegerField("ordre", default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["wig__name", "color", "order", "id"]
+        verbose_name = "image de perruque"
+        verbose_name_plural = "images de perruques"
+
+    def __str__(self):
+        return f"{self.wig.name} - {self.color}"
+
 
 class WigChoice(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name="wig_choices")
     wig = models.ForeignKey(WigCatalog, on_delete=models.CASCADE, related_name="choices")
+    color = models.CharField("couleur choisie", max_length=80, blank=True)
     selected_at = models.DateTimeField(default=timezone.now)
     is_final = models.BooleanField("choix final", default=False)
 

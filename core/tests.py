@@ -1,9 +1,10 @@
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Member, RistourneGroup, WigCatalog, WigChoice
+from .models import Member, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 class LotusHairFlowTests(TestCase):
@@ -64,6 +65,106 @@ class LotusHairFlowTests(TestCase):
         response = self.client.get(reverse("member_catalog"), {"q": "cuivre"})
         self.assertContains(response, "Lisse cuivre")
         self.assertNotContains(response, "Boucles volume")
+
+    def test_member_choose_wig_records_color(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron")
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.post(reverse("choose_wig", args=[wig.id]), {"color": "Marron"})
+
+        self.assertRedirects(response, reverse("member_catalog"))
+        choice = WigChoice.objects.get(member=self.member, wig=wig)
+        self.assertEqual(choice.color, "Marron")
+
+    def test_member_cannot_choose_unavailable_color(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron")
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.post(reverse("choose_wig", args=[wig.id]), {"color": "Blond"})
+
+        self.assertRedirects(response, reverse("member_catalog"))
+        self.assertFalse(WigChoice.objects.filter(member=self.member, wig=wig).exists())
+
+    def test_staff_can_upload_catalog_image(self):
+        self.client.login(username="admin", password="admin1234")
+        image = SimpleUploadedFile(
+            "wig.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("manage_catalog"),
+            {
+                "name": "Carre court",
+                "description": "Modele avec image",
+                "colors": "Noir, Blond",
+                "is_available": "on",
+                "image": image,
+            },
+        )
+
+        self.assertRedirects(response, reverse("manage_catalog"))
+        wig = WigCatalog.objects.get(name="Carre court")
+        self.assertTrue(wig.image.name.startswith("catalogue/"))
+
+    def test_staff_can_add_catalog_image_by_color(self):
+        self.client.login(username="admin", password="admin1234")
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron")
+        image = SimpleUploadedFile(
+            "black.gif",
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+            content_type="image/gif",
+        )
+
+        response = self.client.post(
+            reverse("manage_catalog"),
+            {
+                "form_type": "image",
+                "wig": wig.id,
+                "color": "Noir",
+                "order": 1,
+                "image": image,
+            },
+        )
+
+        self.assertRedirects(response, reverse("manage_catalog"))
+        gallery_image = WigImage.objects.get(wig=wig, color="Noir")
+        self.assertTrue(gallery_image.image.name.startswith("catalogue/couleurs/"))
+
+    def test_member_catalog_renders_color_carousel_images(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        wig = WigCatalog.objects.create(name="Lisse", description="Modele test", colors="Noir, Marron")
+        WigImage.objects.create(
+            wig=wig,
+            color="Noir",
+            image=SimpleUploadedFile(
+                "black.gif",
+                b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00ccc,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;",
+                content_type="image/gif",
+            ),
+        )
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_catalog"))
+
+        self.assertContains(response, 'data-wig-carousel')
+        self.assertContains(response, 'data-color="Noir"')
+        self.assertContains(response, 'data-color-select')
 
     def test_member_dashboard_calendar_can_navigate_months(self):
         self.member.accepted_terms_at = timezone.now()

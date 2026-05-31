@@ -1,41 +1,89 @@
 {% extends "core/base.html" %}
 {% block content %}
-<section class="page" style="padding-top: 10px;">
+<section class="page admin-page admin-manage-page" style="padding-top: 10px;">
   <div class="section-head" style="align-items: center;">
     <h1 style="margin: 0;">Gestion du Catalogue</h1>
-    <a class="btn" href="{% url 'staff_dashboard' %}" style="display: inline-flex; align-items: center; border-color: var(--color-border); color: var(--color-brand-plum);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Retour
-    </a>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#wig-form-modal">Nouveau modele</button>
+      <button class="btn" type="button" data-admin-modal-open="#wig-image-form-modal">Image couleur</button>
+      <a class="btn" href="{% url 'staff_dashboard' %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </a>
+    </div>
   </div>
 
-  <div class="split">
-    <form method="post" class="panel form-grid" style="border-top: 4px solid var(--color-brand-plum); padding: 28px;">
-      <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">Nouveau Modèle</h2>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="btn primary" type="submit" style="width: 100%; margin-top: 10px;">
-        Ajouter au catalogue
-      </button>
-    </form>
-
-    <section class="panel" style="padding: 28px;">
-      <h2 style="font-family: var(--font-heading); margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Modèles Enregistrés</h2>
-      <div class="list">
-        {% for wig in wigs %}
-          <div class="row" style="padding: 12px 0;">
-            <span style="font-weight: 600; color: var(--color-text-main);">{{ wig.name }}</span>
-            {% if wig.is_available %}
-              <span class="badge" style="background: var(--color-success-bg); color: var(--color-success); border: none;">Disponible</span>
-            {% else %}
-              <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: none;">Indisponible</span>
+  <section class="panel admin-list-panel">
+    <h2>Modeles enregistres</h2>
+    <div class="list">
+      {% for wig in wigs %}
+        <div class="row admin-row">
+          <div class="admin-catalog-item">
+            {% if wig.display_image_url %}
+              <img src="{{ wig.display_image_url }}" alt="{{ wig.name }}">
             {% endif %}
+            <div>
+              <span>{{ wig.name }}</span>
+              <small>{{ wig.colors|default:"Aucune couleur listee" }}</small>
+              <small>{{ wig.gallery_images.all|length }} image(s) couleur</small>
+            </div>
           </div>
-        {% empty %}
-          <p style="color: var(--color-text-muted); text-align: center; padding: 20px 0;">Aucun modèle dans le catalogue.</p>
+          {% if wig.is_available %}
+            <span class="badge status-success">Disponible</span>
+          {% else %}
+            <span class="badge status-danger">Indisponible</span>
+          {% endif %}
+          <div class="admin-row-actions">
+            <a class="btn" href="{% url 'catalog_detail' wig.id %}">Details</a>
+            <a class="btn primary" href="{% url 'edit_catalog' wig.id %}">Modifier</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun modele dans le catalogue.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=wigs page_param="page" %}
+    {% if gallery_images %}
+      <h3 class="admin-subtitle">Dernieres images ajoutees</h3>
+      <div class="catalog-admin-gallery">
+        {% for item in gallery_images %}
+          <figure>
+            <img src="{{ item.image.url }}" alt="{{ item.wig.name }} {{ item.color }}">
+            <figcaption>{{ item.wig.name }} - {{ item.color }}</figcaption>
+          </figure>
         {% endfor %}
       </div>
-    </section>
+    {% endif %}
+  </section>
+
+  <div class="admin-modal {% if form_open == 'model' %}is-open{% endif %}" id="wig-form-modal" role="dialog" aria-modal="true" aria-labelledby="wig-form-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="wig-form-title">Nouveau modele</h2>
+      <form method="post" enctype="multipart/form-data" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="model">
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Ajouter au catalogue</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-modal {% if form_open == 'image' %}is-open{% endif %}" id="wig-image-form-modal" role="dialog" aria-modal="true" aria-labelledby="wig-image-form-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="wig-image-form-title">Image par couleur</h2>
+      <form method="post" enctype="multipart/form-data" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="image">
+        {{ image_form.as_p }}
+        <button class="btn primary" type="submit">Ajouter l'image</button>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}

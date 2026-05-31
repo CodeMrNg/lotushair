@@ -1,24 +1,31 @@
 {% extends "core/base.html" %}
 {% block content %}
-<section class="page" style="padding-top: 10px;">
+<section class="page admin-page admin-manage-page" style="padding-top: 10px;">
   <div class="section-head" style="align-items: center;">
     <h1 style="margin: 0;">Gestion des Paiements</h1>
-    <a class="btn" href="{% url 'staff_dashboard' %}" style="display: inline-flex; align-items: center; border-color: var(--color-border); color: var(--color-brand-plum);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Retour
-    </a>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#payment-form-modal">Nouveau paiement</button>
+      <a class="btn" href="{% url 'staff_dashboard' %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </a>
+    </div>
   </div>
 
-  <div class="split">
-    <form method="post" class="panel form-grid" style="border-top: 4px solid var(--color-brand-plum); padding: 28px;" hx-post="{% url 'manage_payments' %}" hx-target="#payments-table" hx-swap="outerHTML">
-      <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">Saisir un versement</h2>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="btn primary" type="submit" style="width: 100%; margin-top: 10px;">
-        Enregistrer le paiement
+  {% include "core/partials/payment_table.html" %}
+
+  <div class="admin-modal {% if form_open %}is-open{% endif %}" id="payment-form-modal" role="dialog" aria-modal="true" aria-labelledby="payment-form-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
-    </form>
-    {% include "core/partials/payment_table.html" %}
+      <h2 id="payment-form-title">Saisir un versement</h2>
+      <form method="post" class="form-grid" hx-post="{% url 'manage_payments' %}" hx-target="#payments-table" hx-swap="outerHTML">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Enregistrer le paiement</button>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}

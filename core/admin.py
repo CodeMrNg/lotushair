@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Member, Notification, Payment, RistourneGroup, WigCatalog, WigChoice
+from .models import Member, Notification, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 @admin.register(RistourneGroup)
@@ -32,6 +32,7 @@ class WigCatalogAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WigChoice)
+admin.site.register(WigImage)
 admin.site.register(Notification)
 
 # Register your models here.

@@ -1,40 +1,51 @@
 {% extends "core/base.html" %}
 {% block content %}
-<section class="page" style="padding-top: 10px;">
+<section class="page admin-page admin-manage-page" style="padding-top: 10px;">
   <div class="section-head" style="align-items: center;">
     <h1 style="margin: 0;">Gestion des Groupes</h1>
-    <a class="btn" href="{% url 'staff_dashboard' %}" style="display: inline-flex; align-items: center; border-color: var(--color-border); color: var(--color-brand-plum);">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Retour
-    </a>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#group-form-modal">Nouveau groupe</button>
+      <a class="btn" href="{% url 'staff_dashboard' %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </a>
+    </div>
   </div>
-  
-  <div class="split">
-    <form method="post" class="panel form-grid" style="border-top: 4px solid var(--color-brand-plum); padding: 28px;">
-      <h2 style="font-family: var(--font-heading); margin-bottom: 20px;">Nouveau Groupe</h2>
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button class="btn primary" type="submit" style="width: 100%; margin-top: 10px;">
-        Créer le groupe
-      </button>
-    </form>
-    
-    <section class="panel" style="padding: 28px;">
-      <h2 style="font-family: var(--font-heading); margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Groupes Actifs</h2>
-      <div class="list">
-        {% for group in groups %}
-          <div class="row" style="padding: 12px 0;">
-            <div>
-              <span style="display: block; font-weight: 600; color: var(--color-text-main);">{{ group.name }}</span>
-              <small style="color: var(--color-text-muted);">Cycle : {{ group.cycle_days }} jours</small>
-            </div>
-            <em style="color: var(--color-brand-plum); font-weight: 700;">{{ group.contribution_amount }} FCFA / {{ group.payment_frequency_days }} j</em>
+
+  <section class="panel admin-list-panel">
+    <h2>Groupes actifs</h2>
+    <div class="list">
+      {% for group in groups %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ group.name }}</span>
+            <small>Cycle : {{ group.cycle_days }} jours | Fin du cycle : {{ group.current_cycle_end }}</small>
           </div>
-        {% empty %}
-          <p style="color: var(--color-text-muted); text-align: center; padding: 20px 0;">Aucun groupe disponible.</p>
-        {% endfor %}
-      </div>
-    </section>
+          <em>{{ group.contribution_amount }} FCFA / {{ group.payment_frequency_days }} j</em>
+          <div class="admin-row-actions">
+            <a class="btn" href="{% url 'group_detail' group.id %}">Details</a>
+            <a class="btn primary" href="{% url 'edit_group' group.id %}">Modifier</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun groupe disponible.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=groups page_param="page" %}
+  </section>
+
+  <div class="admin-modal {% if form_open %}is-open{% endif %}" id="group-form-modal" role="dialog" aria-modal="true" aria-labelledby="group-form-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="group-form-title">Nouveau groupe</h2>
+      <form method="post" class="form-grid">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Creer le groupe</button>
+      </form>
+    </div>
   </div>
 </section>
 {% endblock %}

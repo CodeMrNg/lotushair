@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Member, Payment, RistourneGroup, WigCatalog
+from .models import Member, Payment, RistourneGroup, WigCatalog, WigImage
 
 
 class CodeLoginForm(forms.Form):
@@ -38,4 +38,16 @@ class PaymentForm(forms.ModelForm):
 class WigForm(forms.ModelForm):
     class Meta:
         model = WigCatalog
-        fields = ["name", "description", "image_url", "is_available"]
+        fields = ["name", "description", "image", "colors", "is_available"]
+        widgets = {
+            "colors": forms.TextInput(attrs={"placeholder": "Noir, Marron, Blond, Bordeaux"}),
+        }
+
+
+class WigImageForm(forms.ModelForm):
+    class Meta:
+        model = WigImage
+        fields = ["wig", "color", "image", "order"]
+        widgets = {
+            "color": forms.TextInput(attrs={"placeholder": "Noir"}),
+        }

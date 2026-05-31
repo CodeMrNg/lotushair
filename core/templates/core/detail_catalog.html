@@ -1,0 +1,75 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page admin-page admin-manage-page admin-detail-page" style="padding-top: 10px;">
+  <div class="section-head">
+    <h1>{{ wig.name }}</h1>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#edit-wig-modal">Modifier</button>
+      <button class="btn" type="button" data-admin-modal-open="#add-wig-image-modal">Ajouter image</button>
+      <a class="btn" href="{% url 'manage_catalog' %}">Retour</a>
+    </div>
+  </div>
+
+  <section class="panel admin-detail-panel catalog-detail-layout">
+    {% if wig.display_image_url %}
+      <img class="catalog-detail-cover" src="{{ wig.display_image_url }}" alt="{{ wig.name }}">
+    {% endif %}
+    <div>
+      <div class="detail-grid">
+        <div class="detail-item"><small>Modele</small><strong>{{ wig.name }}</strong></div>
+        <div class="detail-item"><small>Couleurs</small><strong>{{ wig.colors|default:"Aucune" }}</strong></div>
+        <div class="detail-item"><small>Statut</small><strong>{% if wig.is_available %}Disponible{% else %}Indisponible{% endif %}</strong></div>
+        <div class="detail-item"><small>Images couleur</small><strong>{{ wig.gallery_images.all|length }}</strong></div>
+      </div>
+      <div class="detail-note">
+        <small>Description</small>
+        <p>{{ wig.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel admin-list-panel">
+    <h2>Images par couleur</h2>
+    <div class="catalog-admin-gallery">
+      {% for item in images %}
+        <figure>
+          <img src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
+          <figcaption>{{ item.color }}</figcaption>
+        </figure>
+      {% empty %}
+        <p class="empty-state">Aucune image couleur pour ce modele.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=images page_param=images_page_param %}
+  </section>
+
+  <div class="admin-modal {% if edit_open %}is-open{% endif %}" id="edit-wig-modal" role="dialog" aria-modal="true" aria-labelledby="edit-wig-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="edit-wig-title">Modifier le modele</h2>
+      <form method="post" enctype="multipart/form-data" action="{% url 'edit_catalog' wig.id %}" class="form-grid">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="add-wig-image-modal" role="dialog" aria-modal="true" aria-labelledby="add-wig-image-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="add-wig-image-title">Ajouter une image couleur</h2>
+      <form method="post" enctype="multipart/form-data" action="{% url 'manage_catalog' %}" class="form-grid">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="image">
+        {{ image_form.as_p }}
+        <button class="btn primary" type="submit">Ajouter l'image</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

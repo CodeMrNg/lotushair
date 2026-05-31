@@ -5,13 +5,14 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
+from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm
-from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, generate_member_code
+from .forms import CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
+from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
 
 
 def current_member(request):
@@ -166,9 +167,9 @@ def member_dashboard(request):
 @member_required
 def member_catalog(request):
     query = request.GET.get("q", "").strip()
-    wigs = WigCatalog.objects.all()
+    wigs = WigCatalog.objects.prefetch_related("gallery_images")
     if query:
-        wigs = wigs.filter(Q(name__icontains=query) | Q(description__icontains=query))
+        wigs = wigs.filter(Q(name__icontains=query) | Q(description__icontains=query) | Q(colors__icontains=query))
     return render(
         request,
         "core/member_catalog.html",
@@ -176,6 +177,7 @@ def member_catalog(request):
             "member": request.member,
             "wigs": wigs,
             "selected": request.member.selected_wig,
+            "selected_choice": request.member.selected_wig_choice,
             "has_received_wig": has_received_wig_this_cycle(request.member),
             "query": query,
         },
@@ -189,8 +191,14 @@ def choose_wig(request, wig_id):
         messages.error(request, "Vous avez deja recu votre perruque pour ce cycle. Le choix du catalogue est bloque.")
         return redirect("member_catalog")
     wig = get_object_or_404(WigCatalog, id=wig_id, is_available=True)
-    WigChoice.objects.create(member=request.member, wig=wig)
-    messages.success(request, f"{wig.name} est maintenant votre choix de perruque.")
+    selected_color = request.POST.get("color", "").strip()
+    available_colors = wig.available_colors
+    if available_colors and selected_color not in available_colors:
+        messages.error(request, "Veuillez choisir une couleur disponible pour ce modele.")
+        return redirect("member_catalog")
+    WigChoice.objects.create(member=request.member, wig=wig, color=selected_color)
+    color_suffix = f" en {selected_color}" if selected_color else ""
+    messages.success(request, f"{wig.name}{color_suffix} est maintenant votre choix de perruque.")
     return redirect("member_catalog")
 
 
@@ -220,6 +228,11 @@ def is_staff(user):
 staff_required = user_passes_test(is_staff, login_url="staff_login")
 
 
+def paginate_queryset(request, queryset, per_page=12, page_param="page"):
+    paginator = Paginator(queryset, per_page)
+    return paginator.get_page(request.GET.get(page_param))
+
+
 @staff_required
 def staff_dashboard(request):
     total_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
@@ -241,7 +254,27 @@ def manage_groups(request):
         form.save()
         messages.success(request, "Groupe enregistre.")
         return redirect("manage_groups")
-    return render(request, "core/manage_groups.html", {"form": form, "groups": RistourneGroup.objects.all()})
+    groups = paginate_queryset(request, RistourneGroup.objects.all(), per_page=10)
+    return render(request, "core/manage_groups.html", {"form": form, "groups": groups, "form_open": request.method == "POST"})
+
+
+@staff_required
+def group_detail(request, group_id):
+    group = get_object_or_404(RistourneGroup, id=group_id)
+    members = paginate_queryset(request, group.ordered_members(), per_page=10, page_param="members_page")
+    return render(request, "core/detail_group.html", {"group": group, "form": GroupForm(instance=group), "members": members, "members_page_param": "members_page"})
+
+
+@staff_required
+def edit_group(request, group_id):
+    group = get_object_or_404(RistourneGroup, id=group_id)
+    form = GroupForm(request.POST or None, instance=group)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Groupe modifie.")
+        return redirect("group_detail", group_id=group.id)
+    members = paginate_queryset(request, group.ordered_members(), per_page=10, page_param="members_page")
+    return render(request, "core/detail_group.html", {"group": group, "form": form, "members": members, "members_page_param": "members_page", "edit_open": True})
 
 
 @staff_required
@@ -255,7 +288,27 @@ def manage_members(request):
         member.save()
         messages.success(request, f"Membre ajoute. Code de connexion : {new_code}")
         return redirect("manage_members")
-    return render(request, "core/manage_members.html", {"form": form, "members": Member.objects.select_related("group"), "new_code": new_code})
+    members = paginate_queryset(request, Member.objects.select_related("group"), per_page=12)
+    return render(request, "core/manage_members.html", {"form": form, "members": members, "new_code": new_code, "form_open": request.method == "POST"})
+
+
+@staff_required
+def member_detail_admin(request, member_id):
+    member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
+    payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
+    return render(request, "core/detail_member.html", {"member": member, "form": MemberForm(instance=member), "payments": payments, "payments_page_param": "payments_page"})
+
+
+@staff_required
+def edit_member(request, member_id):
+    member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
+    form = MemberForm(request.POST or None, instance=member)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Membre modifie.")
+        return redirect("member_detail_admin", member_id=member.id)
+    payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
+    return render(request, "core/detail_member.html", {"member": member, "form": form, "payments": payments, "payments_page_param": "payments_page", "edit_open": True})
 
 
 @staff_required
@@ -278,18 +331,78 @@ def manage_payments(request):
         messages.success(request, "Paiement enregistre.")
         if request.headers.get("HX-Request"):
             form = PaymentForm(initial=initial)
-            return render(request, "core/partials/payment_table.html", {"payments": Payment.objects.select_related("member", "member__group")[:20], "form": form})
+            payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
+            return render(request, "core/partials/payment_table.html", {"payments": payments, "form": form})
         return redirect("manage_payments")
-    return render(request, "core/manage_payments.html", {"form": form, "payments": Payment.objects.select_related("member", "member__group")[:20]})
+    payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
+    return render(request, "core/manage_payments.html", {"form": form, "payments": payments, "form_open": request.method == "POST"})
+
+
+@staff_required
+def payment_detail(request, payment_id):
+    payment = get_object_or_404(Payment.objects.select_related("member", "member__group"), id=payment_id)
+    return render(request, "core/detail_payment.html", {"payment": payment, "form": PaymentForm(instance=payment)})
+
+
+@staff_required
+def edit_payment(request, payment_id):
+    payment = get_object_or_404(Payment.objects.select_related("member", "member__group"), id=payment_id)
+    form = PaymentForm(request.POST or None, instance=payment)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Paiement modifie.")
+        return redirect("payment_detail", payment_id=payment.id)
+    return render(request, "core/detail_payment.html", {"payment": payment, "form": form, "edit_open": True})
 
 
 @staff_required
 def manage_catalog(request):
-    form = WigForm(request.POST or None)
+    form = WigForm()
+    image_form = WigImageForm()
+    form_open = None
+    if request.method == "POST" and request.POST.get("form_type") == "image":
+        form_open = "image"
+        image_form = WigImageForm(request.POST, request.FILES)
+        if image_form.is_valid():
+            image_form.save()
+            messages.success(request, "Image ajoutee au modele.")
+            return redirect("manage_catalog")
+    elif request.method == "POST":
+        form_open = "model"
+        form = WigForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Modele ajoute au catalogue.")
+            return redirect("manage_catalog")
+    return render(
+        request,
+        "core/manage_catalog.html",
+        {
+            "form": form,
+            "image_form": image_form,
+            "wigs": paginate_queryset(request, WigCatalog.objects.prefetch_related("gallery_images"), per_page=10),
+            "gallery_images": WigImage.objects.select_related("wig")[:30],
+            "form_open": form_open,
+        },
+    )
+
+
+@staff_required
+def catalog_detail(request, wig_id):
+    wig = get_object_or_404(WigCatalog.objects.prefetch_related("gallery_images"), id=wig_id)
+    images = paginate_queryset(request, wig.gallery_images.all(), per_page=12, page_param="images_page")
+    return render(request, "core/detail_catalog.html", {"wig": wig, "form": WigForm(instance=wig), "image_form": WigImageForm(initial={"wig": wig}), "images": images, "images_page_param": "images_page"})
+
+
+@staff_required
+def edit_catalog(request, wig_id):
+    wig = get_object_or_404(WigCatalog.objects.prefetch_related("gallery_images"), id=wig_id)
+    form = WigForm(request.POST or None, request.FILES or None, instance=wig)
     if request.method == "POST" and form.is_valid():
         form.save()
-        messages.success(request, "Modele ajoute au catalogue.")
-        return redirect("manage_catalog")
-    return render(request, "core/manage_catalog.html", {"form": form, "wigs": WigCatalog.objects.all()})
+        messages.success(request, "Modele modifie.")
+        return redirect("catalog_detail", wig_id=wig.id)
+    images = paginate_queryset(request, wig.gallery_images.all(), per_page=12, page_param="images_page")
+    return render(request, "core/detail_catalog.html", {"wig": wig, "form": form, "image_form": WigImageForm(initial={"wig": wig}), "images": images, "images_page_param": "images_page", "edit_open": True})
 
 # Create your views here.

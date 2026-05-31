@@ -1,0 +1,59 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page admin-page admin-manage-page admin-detail-page" style="padding-top: 10px;">
+  <div class="section-head">
+    <h1>{{ member.full_name }}</h1>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#edit-member-modal">Modifier</button>
+      <a class="btn" href="{% url 'manage_members' %}">Retour</a>
+    </div>
+  </div>
+
+  <section class="panel admin-detail-panel">
+    <div class="detail-grid">
+      <div class="detail-item"><small>Groupe</small><strong>{{ member.group.name }}</strong></div>
+      <div class="detail-item"><small>Rang</small><strong>{{ member.rank }}</strong></div>
+      <div class="detail-item"><small>Statut</small><strong>{{ member.status }}</strong></div>
+      <div class="detail-item"><small>Inscription</small><strong>{{ member.joined_at }}</strong></div>
+      <div class="detail-item"><small>Conditions</small><strong>{% if member.accepted_terms_at %}Acceptees{% else %}Non acceptees{% endif %}</strong></div>
+      <div class="detail-item"><small>Versements</small><strong>{{ member.payments_done }}/{{ member.group.expected_payments }}</strong></div>
+      <div class="detail-item"><small>Choix</small><strong>{{ member.selected_wig|default:"Aucun" }}</strong></div>
+      <div class="detail-item"><small>Actif</small><strong>{% if member.is_active %}Oui{% else %}Non{% endif %}</strong></div>
+    </div>
+  </section>
+
+  <section class="panel admin-list-panel">
+    <h2>Derniers paiements</h2>
+    <div class="list">
+      {% for payment in payments %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ payment.amount }} FCFA</span>
+            <small>{{ payment.paid_on }} | {{ payment.get_status_display }}</small>
+          </div>
+          <div class="admin-row-actions">
+            <a class="btn" href="{% url 'payment_detail' payment.id %}">Details</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun paiement pour ce membre.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=payments page_param=payments_page_param %}
+  </section>
+
+  <div class="admin-modal {% if edit_open %}is-open{% endif %}" id="edit-member-modal" role="dialog" aria-modal="true" aria-labelledby="edit-member-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="edit-member-title">Modifier le membre</h2>
+      <form method="post" action="{% url 'edit_member' member.id %}" class="form-grid">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

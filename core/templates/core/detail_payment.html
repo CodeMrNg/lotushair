@@ -1,0 +1,43 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page admin-page admin-manage-page admin-detail-page" style="padding-top: 10px;">
+  <div class="section-head">
+    <h1>Paiement</h1>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#edit-payment-modal">Modifier</button>
+      <a class="btn" href="{% url 'manage_payments' %}">Retour</a>
+    </div>
+  </div>
+
+  <section class="panel admin-detail-panel">
+    <div class="detail-grid">
+      <div class="detail-item"><small>Membre</small><strong>{{ payment.member.full_name }}</strong></div>
+      <div class="detail-item"><small>Groupe</small><strong>{{ payment.member.group.name }}</strong></div>
+      <div class="detail-item"><small>Montant</small><strong>{{ payment.amount }} FCFA</strong></div>
+      <div class="detail-item"><small>Date</small><strong>{{ payment.paid_on }}</strong></div>
+      <div class="detail-item"><small>Statut</small><strong>{{ payment.get_status_display }}</strong></div>
+      <div class="detail-item"><small>Enregistre le</small><strong>{{ payment.created_at }}</strong></div>
+    </div>
+    {% if payment.note %}
+      <div class="detail-note">
+        <small>Note</small>
+        <p>{{ payment.note }}</p>
+      </div>
+    {% endif %}
+  </section>
+
+  <div class="admin-modal {% if edit_open %}is-open{% endif %}" id="edit-payment-modal" role="dialog" aria-modal="true" aria-labelledby="edit-payment-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="edit-payment-title">Modifier le paiement</h2>
+      <form method="post" action="{% url 'edit_payment' payment.id %}" class="form-grid">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,25 +1,30 @@
-<section class="panel" id="payments-table" style="padding: 28px;">
-  <h2 style="font-family: var(--font-heading); margin-bottom: 20px; border-bottom: 1px solid var(--color-border); padding-bottom: 10px;">Historique des Paiements</h2>
+<section class="panel admin-list-panel" id="payments-table">
+  <h2>Historique des paiements</h2>
   <div class="list">
     {% for payment in payments %}
-      <div class="row" style="padding: 12px 0;">
+      <div class="row admin-row">
         <div>
-          <span style="display: block; font-weight: 600; color: var(--color-text-main);">{{ payment.member.full_name }}</span>
-          <small style="color: var(--color-text-muted);">{{ payment.paid_on }} | {{ payment.member.group.name }}</small>
+          <span>{{ payment.member.full_name }}</span>
+          <small>{{ payment.paid_on }} | {{ payment.member.group.name }}</small>
         </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <em style="color: var(--color-brand-plum); font-weight: 700; font-style: normal;">{{ payment.amount }} FCFA</em>
+        <div class="admin-row-meta">
+          <em>{{ payment.amount }} FCFA</em>
           {% if payment.status == 'confirmed' %}
-            <span class="badge" style="background: var(--color-success-bg); color: var(--color-success); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">Confirmé</span>
+            <span class="badge status-success">Confirme</span>
           {% elif payment.status == 'pending' %}
-            <span class="badge" style="background: var(--color-warning-bg); color: var(--color-warning); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">En attente</span>
+            <span class="badge status-warning">En attente</span>
           {% else %}
-            <span class="badge" style="background: var(--color-danger-bg); color: var(--color-danger); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">{{ payment.get_status_display }}</span>
+            <span class="badge status-danger">{{ payment.get_status_display }}</span>
           {% endif %}
+        </div>
+        <div class="admin-row-actions">
+          <a class="btn" href="{% url 'payment_detail' payment.id %}">Details</a>
+          <a class="btn primary" href="{% url 'edit_payment' payment.id %}">Modifier</a>
         </div>
       </div>
     {% empty %}
-      <p style="color: var(--color-text-muted); text-align: center; padding: 20px 0;">Aucun versement enregistré pour le moment.</p>
+      <p class="empty-state">Aucun versement enregistre pour le moment.</p>
     {% endfor %}
   </div>
+  {% include "core/partials/pagination.html" with page_obj=payments page_param="page" %}
 </section>
