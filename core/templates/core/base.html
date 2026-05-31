@@ -97,25 +97,7 @@
     <main id="content">
   {% endif %}
 
-  {% if messages %}
-    <div class="message-modal is-open" role="dialog" aria-modal="true" aria-labelledby="message-modal-title" data-message-modal>
-      <div class="message-modal-card">
-        <button class="message-modal-close" type="button" aria-label="Fermer la notification" data-message-modal-close>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        </button>
-        <div class="message-modal-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-        <h2 id="message-modal-title">Notification</h2>
-        <div class="messages">
-          {% for message in messages %}
-            <div class="message {{ message.tags }}" role="status">{{ message }}</div>
-          {% endfor %}
-        </div>
-        <button class="btn primary" type="button" data-message-modal-close>OK</button>
-      </div>
-    </div>
-  {% endif %}
+  {% include "core/partials/message_modal.html" %}
 
   {% block content %}{% endblock %}
 
@@ -221,24 +203,34 @@
         });
       }
 
-      const messageModal = document.querySelector('[data-message-modal]');
-      if (messageModal) {
-        const closeMessageModal = () => {
-          messageModal.classList.remove('is-open');
-          setTimeout(() => messageModal.remove(), 180);
-        };
-        messageModal.querySelectorAll('[data-message-modal-close]').forEach(button => {
-          button.addEventListener('click', closeMessageModal);
-        });
-        messageModal.addEventListener('click', (event) => {
-          if (event.target === messageModal) closeMessageModal();
-        });
-        document.addEventListener('keydown', (event) => {
-          if (event.key === 'Escape' && messageModal.classList.contains('is-open')) closeMessageModal();
-        });
-        const closeButton = messageModal.querySelector('[data-message-modal-close]');
+      const closeMessageModal = (modal) => {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        setTimeout(() => modal.remove(), 180);
+      };
+      const focusLatestMessageModal = () => {
+        const modals = document.querySelectorAll('[data-message-modal].is-open');
+        const latestModal = modals[modals.length - 1];
+        const closeButton = latestModal?.querySelector('[data-message-modal-close]');
         if (closeButton) closeButton.focus({ preventScroll: true });
-      }
+      };
+      document.addEventListener('click', (event) => {
+        const closeButton = event.target.closest('[data-message-modal-close]');
+        if (closeButton) {
+          closeMessageModal(closeButton.closest('[data-message-modal]'));
+          return;
+        }
+        if (event.target.matches('[data-message-modal]')) {
+          closeMessageModal(event.target);
+        }
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const openModal = document.querySelector('[data-message-modal].is-open');
+        if (openModal) closeMessageModal(openModal);
+      });
+      document.body.addEventListener('htmx:afterSwap', focusLatestMessageModal);
+      focusLatestMessageModal();
 
       const adminModals = document.querySelectorAll('[data-admin-modal]');
       const closeAdminModal = (modal) => {
