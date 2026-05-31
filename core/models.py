@@ -84,6 +84,8 @@ class Member(models.Model):
     status = models.CharField("statut", max_length=40, default="actif")
     joined_at = models.DateField("date d'inscription", default=timezone.localdate)
     accepted_terms_at = models.DateTimeField("conditions acceptees le", null=True, blank=True)
+    last_login_at = models.DateTimeField("derniere connexion", null=True, blank=True)
+    last_seen_at = models.DateTimeField("derniere activite", null=True, blank=True)
     is_active = models.BooleanField("actif", default=True)
 
     class Meta:
@@ -129,6 +131,12 @@ class Member(models.Model):
     @property
     def selected_wig_choice(self):
         return self.wig_choices.select_related("wig").order_by("-selected_at").first()
+
+    @property
+    def is_online(self):
+        if not self.last_seen_at:
+            return False
+        return self.last_seen_at >= timezone.now() - timezone.timedelta(minutes=5)
 
 
 class Payment(models.Model):

@@ -789,6 +789,20 @@ p {
   color: var(--color-danger);
   border: none;
 }
+.presence-badge {
+  min-height: 28px;
+  padding: 3px 10px;
+  border: none;
+  font-size: 0.7rem;
+}
+.presence-badge.online {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.presence-badge.offline {
+  background: #f1efea;
+  color: var(--color-text-muted);
+}
 .admin-subtitle {
   margin: 24px 0 12px;
   color: var(--color-brand-plum);

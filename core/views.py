@@ -29,6 +29,8 @@ def member_required(view_func):
             return redirect("login")
         if not member.accepted_terms_at and request.resolver_match.url_name != "terms":
             return redirect("terms")
+        member.last_seen_at = timezone.now()
+        member.save(update_fields=["last_seen_at"])
         request.member = member
         return view_func(request, *args, **kwargs)
 
@@ -60,6 +62,10 @@ def member_login(request):
         if member:
             request.session.flush()
             request.session["member_id"] = member.id
+            now = timezone.now()
+            member.last_login_at = now
+            member.last_seen_at = now
+            member.save(update_fields=["last_login_at", "last_seen_at"])
             return redirect("terms" if not member.accepted_terms_at else "member_dashboard")
         messages.error(request, "Code invalide ou compte inactif.")
     return render(request, "core/login.html", {"form": form})
@@ -75,6 +81,10 @@ def terms(request):
 
 
 def member_logout(request):
+    member = current_member(request)
+    if member:
+        member.last_seen_at = None
+        member.save(update_fields=["last_seen_at"])
     request.session.flush()
     return redirect("login")
 
