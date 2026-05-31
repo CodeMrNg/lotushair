@@ -34,13 +34,26 @@
       {% for item in images %}
         <figure>
           <img src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
-          <figcaption>
-            <span>{{ item.color }}</span>
-            <button class="btn" type="button" data-admin-modal-open="#edit-wig-image-{{ item.id }}">Modifier</button>
-          </figcaption>
+          <figcaption>{{ item.color }}</figcaption>
         </figure>
       {% empty %}
         <p class="empty-state">Aucune image couleur pour ce modele.</p>
+      {% endfor %}
+    </div>
+    <div class="list color-image-list">
+      {% for item in images %}
+        <div class="row admin-row">
+          <div class="admin-catalog-item">
+            <img src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
+            <div>
+              <span>{{ item.color }}</span>
+              <small>Ordre : {{ item.order }}</small>
+            </div>
+          </div>
+          <div class="admin-row-actions">
+            <button class="btn primary" type="button" data-admin-modal-open="#edit-wig-image-{{ item.id }}">Modifier image</button>
+          </div>
+        </div>
       {% endfor %}
     </div>
     {% include "core/partials/pagination.html" with page_obj=images page_param=images_page_param %}
@@ -82,6 +95,13 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
         <h2 id="edit-wig-image-title-{{ item.id }}">Modifier l'image couleur</h2>
+        <div class="modal-image-preview">
+          <img src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
+          <div>
+            <small>Image actuelle</small>
+            <strong>{{ item.color }}</strong>
+          </div>
+        </div>
         <form method="post" enctype="multipart/form-data" action="{% url 'edit_wig_image' item.id %}" class="form-grid">
           {% csrf_token %}
           <input type="hidden" name="wig" value="{{ wig.id }}">

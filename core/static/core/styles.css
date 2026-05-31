@@ -900,6 +900,37 @@ p {
   object-fit: cover;
   border: 1px solid var(--color-border);
 }
+.color-image-list {
+  margin-top: 18px;
+}
+.modal-image-preview {
+  display: grid;
+  grid-template-columns: 82px 1fr;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-gold-light);
+}
+.modal-image-preview img {
+  width: 82px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+.modal-image-preview small {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.modal-image-preview strong {
+  color: var(--color-brand-plum);
+}
 .pagination {
   display: flex;
   align-items: center;

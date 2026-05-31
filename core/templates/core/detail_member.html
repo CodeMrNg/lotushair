@@ -21,20 +21,30 @@
       <div class="detail-item"><small>Couleur</small><strong>{% if selected_choice.color %}{{ selected_choice.color }}{% else %}Aucune{% endif %}</strong></div>
       <div class="detail-item"><small>Actif</small><strong>{% if member.is_active %}Oui{% else %}Non{% endif %}</strong></div>
     </div>
-    {% if selected_choice %}
-      <div class="member-choice-detail">
+    <div class="member-choice-detail">
+      {% if selected_choice %}
         {% if selected_choice_image %}
           <img src="{{ selected_choice_image.image.url }}" alt="{{ selected_choice.wig.name }} {{ selected_choice.color }}">
         {% elif selected_choice.wig.display_image_url %}
           <img src="{{ selected_choice.wig.display_image_url }}" alt="{{ selected_choice.wig.name }}">
         {% endif %}
-        <div>
-          <small>Perruque choisie</small>
+      {% endif %}
+      <div>
+        <small>Perruque choisie</small>
+        {% if selected_choice %}
           <h2>{{ selected_choice.wig.name }}</h2>
-          <p>Couleur : <strong>{{ selected_choice.color|default:"Non precisee" }}</strong></p>
-        </div>
+          <p>Couleur choisie : <strong>{{ selected_choice.color|default:"Non precisee" }}</strong></p>
+          {% if selected_choice_image %}
+            <p>Image affichee : <strong>{{ selected_choice_image.color }}</strong></p>
+          {% else %}
+            <p>Image affichee : <strong>image principale du modele</strong></p>
+          {% endif %}
+        {% else %}
+          <h2>Aucun choix</h2>
+          <p>Ce membre n'a pas encore choisi de perruque.</p>
+        {% endif %}
       </div>
-    {% endif %}
+    </div>
   </section>
 
   <section class="panel admin-list-panel">
