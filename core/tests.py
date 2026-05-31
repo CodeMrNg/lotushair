@@ -37,7 +37,7 @@ class LotusHairFlowTests(TestCase):
         self.assertContains(response, "Tableau de bord")
 
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
-        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=1)
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=self.group.cycle_days - 1)
         self.group.save()
         self.member.accepted_terms_at = timezone.now()
         self.member.save()
@@ -76,8 +76,8 @@ class LotusHairFlowTests(TestCase):
         response = self.client.get(reverse("member_dashboard"), {"calendar": "2026-06"})
 
         self.assertContains(response, "juin 2026")
-        self.assertContains(response, "?calendar=2026-05")
-        self.assertContains(response, "?calendar=2026-07")
+        self.assertContains(response, "?calendar=2026-05&panel=cycle")
+        self.assertContains(response, "?calendar=2026-07&panel=cycle")
 
     def test_member_dates_use_current_group_cycle(self):
         self.group.cycle_days = 15
@@ -95,5 +95,32 @@ class LotusHairFlowTests(TestCase):
         self.assertEqual(response.context["cycle_starts_on"], self.group.current_cycle_start)
         self.assertEqual(response.context["cycle_ends_on"], self.group.current_cycle_end)
         self.assertContains(response, self.group.current_cycle_start.strftime("%Y-%m-%d"))
+
+    def test_member_delivery_dates_are_cycle_end_dates(self):
+        self.group.cycle_days = 15
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=16)
+        self.group.save()
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        second = Member.objects.create(full_name="Berenice Test", group=self.group, rank=2)
+        second.set_code("DEF456")
+        second.save()
+        third = Member.objects.create(full_name="Carine Test", group=self.group, rank=3)
+        third.set_code("GHI789")
+        third.save()
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+        members = list(response.context["group_members"])
+
+        self.assertEqual(members[0].delivery_status, "Recu")
+        self.assertEqual(members[0].delivery_date, self.group.current_cycle_end - timezone.timedelta(days=15))
+        self.assertEqual(members[1].delivery_status, "Prochain")
+        self.assertEqual(members[1].delivery_date, self.group.current_cycle_end)
+        self.assertEqual(members[2].delivery_status, "Attente")
+        self.assertEqual(members[2].delivery_date, self.group.current_cycle_end + timezone.timedelta(days=15))
 
 # Create your tests here.

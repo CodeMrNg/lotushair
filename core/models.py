@@ -39,6 +39,15 @@ class RistourneGroup(models.Model):
         return (elapsed % self.cycle_days) + 1
 
     @property
+    def current_cycle_number(self):
+        if not self.cycle_days:
+            return 1
+        elapsed = (timezone.localdate() - self.starts_on).days
+        if elapsed < 0:
+            return 1
+        return (elapsed // self.cycle_days) + 1
+
+    @property
     def current_cycle_start(self):
         if not self.cycle_days:
             return self.starts_on
@@ -58,7 +67,7 @@ class RistourneGroup(models.Model):
         members = list(self.ordered_members())
         if not members:
             return None
-        index = (self.current_day - 1) % len(members)
+        index = (self.current_cycle_number - 1) % len(members)
         return members[index]
 
 

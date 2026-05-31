@@ -35,7 +35,16 @@ def member_required(view_func):
 
 
 def has_received_wig_this_cycle(member):
-    return member.rank < member.group.current_day
+    members = list(member.group.ordered_members())
+    if member not in members:
+        return False
+    current_index = (member.group.current_cycle_number - 1) % len(members)
+    member_index = members.index(member)
+    if member_index < current_index:
+        return True
+    if member_index == current_index:
+        return member.group.current_day >= member.group.cycle_days
+    return False
 
 
 def member_login(request):
@@ -97,13 +106,15 @@ def member_dashboard(request):
     }
     next_beneficiary = group.next_beneficiary()
     delivery_dates = {}
-    for group_member in group_members:
-        group_member.delivery_date = cycle_starts_on + timezone.timedelta(days=max(group_member.rank - 1, 0))
+    current_member_index = group_members.index(next_beneficiary) if next_beneficiary in group_members else 0
+    for member_index, group_member in enumerate(group_members):
+        cycle_distance = member_index - current_member_index
+        group_member.delivery_date = cycle_ends_on + timezone.timedelta(days=cycle_distance * group.cycle_days)
         delivery_dates[group_member.delivery_date] = group_member
         if next_beneficiary and group_member.id == next_beneficiary.id:
             group_member.delivery_status = "Prochain"
             group_member.delivery_date_label = "Recevra le"
-        elif group_member.rank < group.current_day:
+        elif member_index < current_member_index:
             group_member.delivery_status = "Recu"
             group_member.delivery_date_label = "Recu le"
         else:
