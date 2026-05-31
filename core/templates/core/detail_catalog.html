@@ -34,7 +34,10 @@
       {% for item in images %}
         <figure>
           <img src="{{ item.image.url }}" alt="{{ wig.name }} {{ item.color }}">
-          <figcaption>{{ item.color }}</figcaption>
+          <figcaption>
+            <span>{{ item.color }}</span>
+            <button class="btn" type="button" data-admin-modal-open="#edit-wig-image-{{ item.id }}">Modifier</button>
+          </figcaption>
         </figure>
       {% empty %}
         <p class="empty-state">Aucune image couleur pour ce modele.</p>
@@ -71,5 +74,33 @@
       </form>
     </div>
   </div>
+
+  {% for item in images %}
+    <div class="admin-modal" id="edit-wig-image-{{ item.id }}" role="dialog" aria-modal="true" aria-labelledby="edit-wig-image-title-{{ item.id }}" data-admin-modal>
+      <div class="admin-modal-card">
+        <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <h2 id="edit-wig-image-title-{{ item.id }}">Modifier l'image couleur</h2>
+        <form method="post" enctype="multipart/form-data" action="{% url 'edit_wig_image' item.id %}" class="form-grid">
+          {% csrf_token %}
+          <input type="hidden" name="wig" value="{{ wig.id }}">
+          <p>
+            <label for="color-{{ item.id }}">Couleur</label>
+            <input id="color-{{ item.id }}" type="text" name="color" value="{{ item.color }}" required>
+          </p>
+          <p>
+            <label for="image-{{ item.id }}">Remplacer l'image</label>
+            <input id="image-{{ item.id }}" type="file" name="image" accept="image/*">
+          </p>
+          <p>
+            <label for="order-{{ item.id }}">Ordre</label>
+            <input id="order-{{ item.id }}" type="number" name="order" value="{{ item.order }}" min="0">
+          </p>
+          <button class="btn primary" type="submit">Enregistrer</button>
+        </form>
+      </div>
+    </div>
+  {% endfor %}
 </section>
 {% endblock %}

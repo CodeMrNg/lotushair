@@ -296,7 +296,24 @@ def manage_members(request):
 def member_detail_admin(request, member_id):
     member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
-    return render(request, "core/detail_member.html", {"member": member, "form": MemberForm(instance=member), "payments": payments, "payments_page_param": "payments_page"})
+    selected_choice = member.selected_wig_choice
+    selected_choice_image = None
+    if selected_choice:
+        selected_choice_image = selected_choice.wig.gallery_images.filter(color__iexact=selected_choice.color).first()
+        if not selected_choice_image:
+            selected_choice_image = selected_choice.wig.gallery_images.first()
+    return render(
+        request,
+        "core/detail_member.html",
+        {
+            "member": member,
+            "form": MemberForm(instance=member),
+            "payments": payments,
+            "payments_page_param": "payments_page",
+            "selected_choice": selected_choice,
+            "selected_choice_image": selected_choice_image,
+        },
+    )
 
 
 @staff_required
@@ -308,7 +325,25 @@ def edit_member(request, member_id):
         messages.success(request, "Membre modifie.")
         return redirect("member_detail_admin", member_id=member.id)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
-    return render(request, "core/detail_member.html", {"member": member, "form": form, "payments": payments, "payments_page_param": "payments_page", "edit_open": True})
+    selected_choice = member.selected_wig_choice
+    selected_choice_image = None
+    if selected_choice:
+        selected_choice_image = selected_choice.wig.gallery_images.filter(color__iexact=selected_choice.color).first()
+        if not selected_choice_image:
+            selected_choice_image = selected_choice.wig.gallery_images.first()
+    return render(
+        request,
+        "core/detail_member.html",
+        {
+            "member": member,
+            "form": form,
+            "payments": payments,
+            "payments_page_param": "payments_page",
+            "selected_choice": selected_choice,
+            "selected_choice_image": selected_choice_image,
+            "edit_open": True,
+        },
+    )
 
 
 @staff_required
@@ -404,5 +439,18 @@ def edit_catalog(request, wig_id):
         return redirect("catalog_detail", wig_id=wig.id)
     images = paginate_queryset(request, wig.gallery_images.all(), per_page=12, page_param="images_page")
     return render(request, "core/detail_catalog.html", {"wig": wig, "form": form, "image_form": WigImageForm(initial={"wig": wig}), "images": images, "images_page_param": "images_page", "edit_open": True})
+
+
+@staff_required
+@require_POST
+def edit_wig_image(request, image_id):
+    wig_image = get_object_or_404(WigImage.objects.select_related("wig"), id=image_id)
+    form = WigImageForm(request.POST, request.FILES, instance=wig_image)
+    if form.is_valid():
+        form.save()
+        messages.success(request, "Image couleur modifiee.")
+    else:
+        messages.error(request, "Impossible de modifier cette image couleur.")
+    return redirect("catalog_detail", wig_id=wig_image.wig_id)
 
 # Create your views here.

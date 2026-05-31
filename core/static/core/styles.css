@@ -852,6 +852,41 @@ p {
   margin: 8px 0 0;
   color: var(--color-text-main);
 }
+.member-choice-detail {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+.member-choice-detail img {
+  width: 140px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--color-border);
+}
+.member-choice-detail small {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.member-choice-detail h2 {
+  margin: 4px 0 4px;
+  padding: 0;
+  border: 0;
+  color: var(--color-brand-plum);
+}
+.member-choice-detail p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
 .catalog-detail-layout {
   display: grid;
   grid-template-columns: minmax(160px, 240px) 1fr;
@@ -1589,6 +1624,13 @@ input[name="code"]:focus {
   font-weight: 800;
   line-height: 1.25;
 }
+.catalog-admin-gallery figcaption .btn {
+  width: 100%;
+  min-height: 30px;
+  margin-top: 7px;
+  padding: 0 8px;
+  font-size: 0.68rem;
+}
 
 /* Administration modals */
 .admin-modal {
@@ -2071,8 +2113,13 @@ input[name="code"]:focus {
     border-radius: 20px;
   }
   .detail-grid,
-  .catalog-detail-layout {
+  .catalog-detail-layout,
+  .member-choice-detail {
     grid-template-columns: 1fr;
+  }
+  .member-choice-detail img {
+    width: 100%;
+    max-width: 220px;
   }
   .admin-detail-panel,
   .admin-list-panel {

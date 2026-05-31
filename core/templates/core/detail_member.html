@@ -17,9 +17,24 @@
       <div class="detail-item"><small>Inscription</small><strong>{{ member.joined_at }}</strong></div>
       <div class="detail-item"><small>Conditions</small><strong>{% if member.accepted_terms_at %}Acceptees{% else %}Non acceptees{% endif %}</strong></div>
       <div class="detail-item"><small>Versements</small><strong>{{ member.payments_done }}/{{ member.group.expected_payments }}</strong></div>
-      <div class="detail-item"><small>Choix</small><strong>{{ member.selected_wig|default:"Aucun" }}</strong></div>
+      <div class="detail-item"><small>Choix</small><strong>{% if selected_choice %}{{ selected_choice.wig.name }}{% else %}Aucun{% endif %}</strong></div>
+      <div class="detail-item"><small>Couleur</small><strong>{% if selected_choice.color %}{{ selected_choice.color }}{% else %}Aucune{% endif %}</strong></div>
       <div class="detail-item"><small>Actif</small><strong>{% if member.is_active %}Oui{% else %}Non{% endif %}</strong></div>
     </div>
+    {% if selected_choice %}
+      <div class="member-choice-detail">
+        {% if selected_choice_image %}
+          <img src="{{ selected_choice_image.image.url }}" alt="{{ selected_choice.wig.name }} {{ selected_choice.color }}">
+        {% elif selected_choice.wig.display_image_url %}
+          <img src="{{ selected_choice.wig.display_image_url }}" alt="{{ selected_choice.wig.name }}">
+        {% endif %}
+        <div>
+          <small>Perruque choisie</small>
+          <h2>{{ selected_choice.wig.name }}</h2>
+          <p>Couleur : <strong>{{ selected_choice.color|default:"Non precisee" }}</strong></p>
+        </div>
+      </div>
+    {% endif %}
   </section>
 
   <section class="panel admin-list-panel">

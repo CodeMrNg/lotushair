@@ -25,4 +25,5 @@ urlpatterns = [
     path("gestion/catalogue/", views.manage_catalog, name="manage_catalog"),
     path("gestion/catalogue/<int:wig_id>/", views.catalog_detail, name="catalog_detail"),
     path("gestion/catalogue/<int:wig_id>/modifier/", views.edit_catalog, name="edit_catalog"),
+    path("gestion/catalogue/images/<int:image_id>/modifier/", views.edit_wig_image, name="edit_wig_image"),
 ]
