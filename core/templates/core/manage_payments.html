@@ -20,7 +20,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
       <h2 id="payment-form-title">Saisir un versement</h2>
-      <form method="post" class="form-grid" hx-post="{% url 'manage_payments' %}" hx-target="#payments-table" hx-swap="outerHTML">
+      <form method="post" class="form-grid" action="{% url 'manage_payments' %}">
         {% csrf_token %}
         {{ form.as_p }}
         <button class="btn primary" type="submit">Enregistrer le paiement</button>

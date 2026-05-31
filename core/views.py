@@ -373,7 +373,9 @@ def manage_payments(request):
         if request.headers.get("HX-Request"):
             form = PaymentForm(initial=initial)
             payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
-            return render(request, "core/partials/payment_table.html", {"payments": payments, "form": form})
+            response = render(request, "core/partials/payment_table.html", {"payments": payments, "form": form})
+            response["HX-Trigger"] = "paymentSaved"
+            return response
         return redirect("manage_payments")
     payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
     return render(request, "core/manage_payments.html", {"form": form, "payments": payments, "form_open": request.method == "POST"})

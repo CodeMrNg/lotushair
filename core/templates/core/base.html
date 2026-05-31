@@ -169,6 +169,15 @@
             btn.classList.remove('btn-loading');
           }
         }
+        const htmxTrigger = event.detail.xhr?.getResponseHeader('HX-Trigger') || '';
+        if (htmxTrigger.includes('paymentSaved')) {
+          const modal = trigger?.closest('[data-admin-modal]');
+          if (modal) {
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('admin-modal-open');
+          }
+        }
       });
 
       const mobilePanel = document.getElementById('member-info-panel');
