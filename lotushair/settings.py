@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-19k&%jv45$0fgbvb0rp9+#8klfni63pir=q=l8*yln45k8686@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['www.lotushair.pythonanywhere.com','lotushair.pythonanywhere.com','127.0.0.1','localhost']
 
 
 # Application definition
