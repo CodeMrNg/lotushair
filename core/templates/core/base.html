@@ -108,6 +108,19 @@
 
   {% block content %}{% endblock %}
 
+  <div class="pwa-install-banner" data-pwa-install-banner hidden>
+    <div>
+      <strong>Installer Lotus Hair</strong>
+      <p data-pwa-install-text>Ajoutez l'application sur votre telephone pour un acces plus rapide.</p>
+    </div>
+    <div class="pwa-install-actions">
+      <button class="btn primary" type="button" data-pwa-install-button>Installer</button>
+      <button class="pwa-install-close" type="button" aria-label="Masquer" data-pwa-install-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+  </div>
+
   <footer class="app-footer">
     <span>Contact : <a href="tel:+242055261728">+242 05 526 17 28 (Ngamakita Madzouka)</a></span>
     {% if request.session.member_id %}
@@ -150,6 +163,54 @@
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/service-worker.js').catch(() => {});
         });
+      }
+
+      const installBanner = document.querySelector('[data-pwa-install-banner]');
+      const installButton = document.querySelector('[data-pwa-install-button]');
+      const installText = document.querySelector('[data-pwa-install-text]');
+      const installClose = document.querySelector('[data-pwa-install-close]');
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+      const isMobile = window.matchMedia('(max-width: 768px)').matches;
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const dismissedAt = Number(localStorage.getItem('lotusHairInstallDismissedAt') || 0);
+      const dismissedRecently = dismissedAt && Date.now() - dismissedAt < 1000 * 60 * 60 * 24 * 7;
+      let deferredInstallPrompt = null;
+
+      const showInstallBanner = () => {
+        if (!installBanner || isStandalone || !isMobile || dismissedRecently) return;
+        installBanner.hidden = false;
+      };
+      const hideInstallBanner = () => {
+        if (!installBanner) return;
+        installBanner.hidden = true;
+        localStorage.setItem('lotusHairInstallDismissedAt', String(Date.now()));
+      };
+
+      if (installBanner) {
+        installClose?.addEventListener('click', hideInstallBanner);
+        installButton?.addEventListener('click', async () => {
+          if (!deferredInstallPrompt) return;
+          deferredInstallPrompt.prompt();
+          await deferredInstallPrompt.userChoice;
+          deferredInstallPrompt = null;
+          hideInstallBanner();
+        });
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+          event.preventDefault();
+          deferredInstallPrompt = event;
+          if (installButton) installButton.hidden = false;
+          if (installText) installText.textContent = "Installez Lotus Hair pour y acceder rapidement depuis l'ecran d'accueil.";
+          showInstallBanner();
+        });
+
+        if (isIOS && !isStandalone) {
+          if (installButton) installButton.hidden = true;
+          if (installText) installText.textContent = "Sur iPhone : touchez Partager, puis Sur l'ecran d'accueil.";
+          showInstallBanner();
+        }
+
+        window.addEventListener('appinstalled', hideInstallBanner);
       }
 
       document.querySelectorAll('form').forEach(form => {

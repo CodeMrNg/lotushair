@@ -12,6 +12,30 @@
     </div>
   </div>
 
+  <section class="panel admin-list-panel late-members-panel">
+    <h2>Membres en retard de cotisation</h2>
+    <div class="list">
+      {% for member in late_members %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ member.full_name }}</span>
+            <small>{{ member.group.name }} | Rang : {{ member.rank }} | {{ member.missing_payments }} versement(s) manquant(s)</small>
+          </div>
+          <div class="admin-row-meta">
+            <em>{{ member.late_amount }} FCFA</em>
+            <span class="badge status-danger">En retard</span>
+          </div>
+          <div class="admin-row-actions">
+            <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
+            <button class="btn primary" type="button" data-admin-modal-open="#payment-form-modal">Enregistrer</button>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun membre en retard de cotisation.</p>
+      {% endfor %}
+    </div>
+  </section>
+
   {% include "core/partials/payment_table.html" %}
 
   <div class="admin-modal {% if form_open %}is-open{% endif %}" id="payment-form-modal" role="dialog" aria-modal="true" aria-labelledby="payment-form-title" data-admin-modal>

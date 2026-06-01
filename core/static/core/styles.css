@@ -803,6 +803,10 @@ p {
   background: #f1efea;
   color: var(--color-text-muted);
 }
+.late-members-panel {
+  margin-bottom: 18px;
+  border-top: 4px solid var(--color-danger);
+}
 .admin-subtitle {
   margin: 24px 0 12px;
   color: var(--color-brand-plum);
@@ -1897,6 +1901,61 @@ input[name="code"]:focus {
   color: var(--color-warning);
   border: 1px solid rgba(194, 140, 56, 0.2);
 }
+.pwa-install-banner {
+  position: fixed;
+  left: 14px;
+  right: 14px;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  z-index: 80;
+  display: none;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(197, 160, 89, 0.34);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(34, 23, 28, 0.22);
+}
+.pwa-install-banner:not([hidden]) {
+  display: grid;
+}
+.pwa-install-banner strong {
+  display: block;
+  color: var(--color-brand-plum);
+  font-size: 0.9rem;
+}
+.pwa-install-banner p {
+  margin: 3px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pwa-install-actions .btn {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.76rem;
+}
+.pwa-install-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: #fff;
+  color: var(--color-brand-plum);
+  cursor: pointer;
+}
+.pwa-install-close svg {
+  width: 16px;
+  height: 16px;
+}
 
 .app-footer {
   display: flex;
@@ -2550,6 +2609,15 @@ input[name="code"]:focus {
     margin-top: 24px;
     padding-top: 14px;
     font-size: 0.78rem;
+  }
+  .pwa-install-banner {
+    grid-template-columns: 1fr;
+  }
+  .pwa-install-actions {
+    justify-content: space-between;
+  }
+  .pwa-install-actions .btn {
+    flex: 1;
   }
 
   .terms-page {

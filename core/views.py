@@ -415,7 +415,24 @@ def manage_payments(request):
             return response
         return redirect("manage_payments")
     payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
-    return render(request, "core/manage_payments.html", {"form": form, "payments": payments, "form_open": request.method == "POST"})
+    late_members = []
+    for member in Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments"):
+        expected_due = max(0, member.group.current_day // member.group.payment_frequency_days)
+        missing_payments = max(expected_due - member.payments_done, 0)
+        if missing_payments > 0:
+            member.missing_payments = missing_payments
+            member.late_amount = missing_payments * member.group.contribution_amount
+            late_members.append(member)
+    return render(
+        request,
+        "core/manage_payments.html",
+        {
+            "form": form,
+            "payments": payments,
+            "late_members": late_members,
+            "form_open": request.method == "POST",
+        },
+    )
 
 
 @staff_required

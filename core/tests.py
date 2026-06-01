@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Member, RistourneGroup, WigCatalog, WigChoice, WigImage
+from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 class LotusHairFlowTests(TestCase):
@@ -48,6 +48,20 @@ class LotusHairFlowTests(TestCase):
         self.client.login(username="admin", password="admin1234")
         response = self.client.get(reverse("staff_dashboard"))
         self.assertContains(response, "Tableau de bord")
+
+    def test_manage_payments_displays_late_members(self):
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("manage_payments"))
+
+        self.assertContains(response, "Membres en retard de cotisation")
+        self.assertContains(response, self.member.full_name)
+        self.assertContains(response, "En retard")
+
+        Payment.objects.create(member=self.member, amount=self.group.contribution_amount, status=Payment.Status.CONFIRMED)
+        response = self.client.get(reverse("manage_payments"))
+
+        self.assertContains(response, "Aucun membre en retard de cotisation.")
 
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=self.group.cycle_days - 1)
