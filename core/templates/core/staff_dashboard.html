@@ -2,13 +2,17 @@
 {% block title %}Gestion - Lotus Hair{% endblock %}
 {% block content %}
 <section class="page app-page admin-page">
-  <div class="dashboard-toolbar">
+  <form method="get" action="{% url 'staff_dashboard' %}" class="dashboard-toolbar">
     <label class="search-pill">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="search" placeholder="Rechercher un membre ou un groupe...">
+      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un membre, un groupe ou un paiement...">
     </label>
+    <button class="btn primary" type="submit">Rechercher</button>
+    {% if query %}
+      <a class="btn" href="{% url 'staff_dashboard' %}">Effacer</a>
+    {% endif %}
     <time>{% now "d F Y" %}</time>
-  </div>
+  </form>
 
   <div class="hero admin-hero dashboard-hero" style="background: linear-gradient(135deg, var(--color-brand-plum-light), #481926);">
     <div>

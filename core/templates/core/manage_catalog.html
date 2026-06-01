@@ -13,6 +13,17 @@
     </div>
   </div>
 
+  <form method="get" class="dashboard-toolbar" style="margin-bottom: 18px;">
+    <label class="search-pill" style="width: min(520px, 100%);">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher un modele, une couleur ou une taille...">
+    </label>
+    <button class="btn primary" type="submit">Rechercher</button>
+    {% if query %}
+      <a class="btn" href="{% url 'manage_catalog' %}">Effacer</a>
+    {% endif %}
+  </form>
+
   <section class="panel admin-list-panel">
     <h2>Modeles enregistres</h2>
     <div class="list">
@@ -43,7 +54,7 @@
         <p class="empty-state">Aucun modele dans le catalogue.</p>
       {% endfor %}
     </div>
-    {% include "core/partials/pagination.html" with page_obj=wigs page_param="page" %}
+    {% include "core/partials/pagination.html" with page_obj=wigs page_param="page" query=query %}
     {% if gallery_images %}
       <h3 class="admin-subtitle">Dernieres images ajoutees</h3>
       <div class="catalog-admin-gallery">

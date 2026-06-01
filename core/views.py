@@ -278,27 +278,54 @@ def paginate_queryset(request, queryset, per_page=12, page_param="page"):
 
 @staff_required
 def staff_dashboard(request):
+    query = request.GET.get("q", "").strip()
     total_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+    groups = RistourneGroup.objects.annotate(member_count=Count("members"))
+    recent_payments = Payment.objects.select_related("member", "member__group")
+    late_members = [member for member in Member.objects.filter(is_active=True).select_related("group") if member.is_late]
+    if query:
+        groups = groups.filter(Q(name__icontains=query) | Q(members__full_name__icontains=query)).distinct()
+        recent_payments = recent_payments.filter(
+            Q(member__full_name__icontains=query)
+            | Q(member__group__name__icontains=query)
+            | Q(status__icontains=query)
+            | Q(note__icontains=query)
+        )
+        late_members = [
+            member
+            for member in late_members
+            if query.lower() in member.full_name.lower() or query.lower() in member.group.name.lower()
+        ]
     context = {
         "total_payments": total_payments,
         "groups_count": RistourneGroup.objects.filter(is_active=True).count(),
         "members_count": Member.objects.filter(is_active=True).count(),
-        "late_members": [member for member in Member.objects.filter(is_active=True).select_related("group") if member.is_late],
-        "groups": RistourneGroup.objects.annotate(member_count=Count("members")),
-        "recent_payments": Payment.objects.select_related("member", "member__group")[:8],
+        "late_members": late_members,
+        "groups": groups[:8],
+        "recent_payments": recent_payments[:8],
+        "query": query,
     }
     return render(request, "core/staff_dashboard.html", context)
 
 
 @staff_required
 def manage_groups(request):
+    query = request.GET.get("q", "").strip()
     form = GroupForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Groupe enregistre.")
         return redirect("manage_groups")
-    groups = paginate_queryset(request, RistourneGroup.objects.all(), per_page=10)
-    return render(request, "core/manage_groups.html", {"form": form, "groups": groups, "form_open": request.method == "POST"})
+    groups_queryset = RistourneGroup.objects.all()
+    if query:
+        groups_queryset = groups_queryset.filter(
+            Q(name__icontains=query)
+            | Q(members__full_name__icontains=query)
+            | Q(cycle_days__icontains=query)
+            | Q(contribution_amount__icontains=query)
+        ).distinct()
+    groups = paginate_queryset(request, groups_queryset, per_page=10)
+    return render(request, "core/manage_groups.html", {"form": form, "groups": groups, "form_open": request.method == "POST", "query": query})
 
 
 @staff_required
@@ -322,6 +349,7 @@ def edit_group(request, group_id):
 
 @staff_required
 def manage_members(request):
+    query = request.GET.get("q", "").strip()
     form = MemberForm(request.POST or None)
     new_code = None
     if request.method == "POST" and form.is_valid():
@@ -331,8 +359,16 @@ def manage_members(request):
         member.save()
         messages.success(request, f"Membre ajoute. Code de connexion : {new_code}")
         return redirect("manage_members")
-    members = paginate_queryset(request, Member.objects.select_related("group"), per_page=12)
-    return render(request, "core/manage_members.html", {"form": form, "members": members, "new_code": new_code, "form_open": request.method == "POST"})
+    members_queryset = Member.objects.select_related("group")
+    if query:
+        members_queryset = members_queryset.filter(
+            Q(full_name__icontains=query)
+            | Q(group__name__icontains=query)
+            | Q(rank__icontains=query)
+            | Q(status__icontains=query)
+        )
+    members = paginate_queryset(request, members_queryset, per_page=12)
+    return render(request, "core/manage_members.html", {"form": form, "members": members, "new_code": new_code, "form_open": request.method == "POST", "query": query})
 
 
 @staff_required
@@ -402,6 +438,7 @@ def regenerate_code(request, member_id):
 
 @staff_required
 def manage_payments(request):
+    query = request.GET.get("q", "").strip()
     initial = {"amount": RistourneGroup.objects.first().contribution_amount if RistourneGroup.objects.exists() else 1250}
     form = PaymentForm(request.POST or None, initial=initial)
     if request.method == "POST" and form.is_valid():
@@ -414,7 +451,17 @@ def manage_payments(request):
             response["HX-Trigger"] = "paymentSaved"
             return response
         return redirect("manage_payments")
-    payments = paginate_queryset(request, Payment.objects.select_related("member", "member__group"), per_page=12)
+    payments_queryset = Payment.objects.select_related("member", "member__group")
+    if query:
+        payments_queryset = payments_queryset.filter(
+            Q(member__full_name__icontains=query)
+            | Q(member__group__name__icontains=query)
+            | Q(status__icontains=query)
+            | Q(note__icontains=query)
+            | Q(amount__icontains=query)
+            | Q(paid_on__icontains=query)
+        )
+    payments = paginate_queryset(request, payments_queryset, per_page=12)
     late_members = []
     for member in Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments"):
         expected_due = max(0, member.group.current_day // member.group.payment_frequency_days)
@@ -422,7 +469,8 @@ def manage_payments(request):
         if missing_payments > 0:
             member.missing_payments = missing_payments
             member.late_amount = missing_payments * member.group.contribution_amount
-            late_members.append(member)
+            if not query or query.lower() in member.full_name.lower() or query.lower() in member.group.name.lower():
+                late_members.append(member)
     return render(
         request,
         "core/manage_payments.html",
@@ -431,6 +479,7 @@ def manage_payments(request):
             "payments": payments,
             "late_members": late_members,
             "form_open": request.method == "POST",
+            "query": query,
         },
     )
 
@@ -454,6 +503,7 @@ def edit_payment(request, payment_id):
 
 @staff_required
 def manage_catalog(request):
+    query = request.GET.get("q", "").strip()
     form = WigForm()
     image_form = WigImageForm()
     form_open = None
@@ -471,15 +521,25 @@ def manage_catalog(request):
             form.save()
             messages.success(request, "Modele ajoute au catalogue.")
             return redirect("manage_catalog")
+    wigs_queryset = WigCatalog.objects.prefetch_related("gallery_images")
+    if query:
+        wigs_queryset = wigs_queryset.filter(
+            Q(name__icontains=query)
+            | Q(description__icontains=query)
+            | Q(colors__icontains=query)
+            | Q(sizes__icontains=query)
+            | Q(gallery_images__color__icontains=query)
+        ).distinct()
     return render(
         request,
         "core/manage_catalog.html",
         {
             "form": form,
             "image_form": image_form,
-            "wigs": paginate_queryset(request, WigCatalog.objects.prefetch_related("gallery_images"), per_page=10),
+            "wigs": paginate_queryset(request, wigs_queryset, per_page=10),
             "gallery_images": WigImage.objects.select_related("wig")[:30],
             "form_open": form_open,
+            "query": query,
         },
     )
 

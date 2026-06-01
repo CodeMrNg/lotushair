@@ -26,5 +26,5 @@
       <p class="empty-state">Aucun versement enregistre pour le moment.</p>
     {% endfor %}
   </div>
-  {% include "core/partials/pagination.html" with page_obj=payments page_param="page" %}
+  {% include "core/partials/pagination.html" with page_obj=payments page_param="page" query=query %}
 </section>
