@@ -63,6 +63,17 @@ class LotusHairFlowTests(TestCase):
 
         self.assertContains(response, "Aucun membre en retard de cotisation.")
 
+    def test_large_payment_counts_as_multiple_daily_payments(self):
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=1)
+        self.group.save()
+
+        Payment.objects.create(member=self.member, amount=5000, status=Payment.Status.CONFIRMED)
+
+        self.assertEqual(self.member.payments_done, 4)
+        self.assertFalse(self.member.is_late)
+        self.assertEqual(self.member.payments_ahead, 2)
+        self.assertEqual(self.member.regularity_badge, "En avance")
+
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=self.group.cycle_days - 1)
         self.group.save()

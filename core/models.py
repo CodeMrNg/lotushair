@@ -2,6 +2,7 @@ import secrets
 
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 
 
@@ -105,7 +106,17 @@ class Member(models.Model):
 
     @property
     def payments_done(self):
-        return self.payments.filter(status=Payment.Status.CONFIRMED).count()
+        contribution_amount = max(self.group.contribution_amount, 1)
+        total_paid = self.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+        return total_paid // contribution_amount
+
+    @property
+    def payments_due(self):
+        return max(0, self.group.current_day // self.group.payment_frequency_days)
+
+    @property
+    def payments_ahead(self):
+        return max(self.payments_done - self.payments_due, 0)
 
     @property
     def days_remaining(self):
@@ -113,12 +124,14 @@ class Member(models.Model):
 
     @property
     def is_late(self):
-        return self.payments_done < max(0, self.group.current_day // self.group.payment_frequency_days)
+        return self.payments_done < self.payments_due
 
     @property
     def regularity_badge(self):
         if self.is_late:
             return "A regulariser"
+        if self.payments_ahead:
+            return "En avance"
         if self.payments_done >= self.group.expected_payments:
             return "Paiement exemplaire"
         return "Membre regulier"

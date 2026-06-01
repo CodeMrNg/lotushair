@@ -464,7 +464,7 @@ def manage_payments(request):
     payments = paginate_queryset(request, payments_queryset, per_page=12)
     late_members = []
     for member in Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments"):
-        expected_due = max(0, member.group.current_day // member.group.payment_frequency_days)
+        expected_due = member.payments_due
         missing_payments = max(expected_due - member.payments_done, 0)
         if missing_payments > 0:
             member.missing_payments = missing_payments
