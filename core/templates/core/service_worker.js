@@ -1,6 +1,6 @@
-const CACHE_NAME = "lotus-hair-static-v1";
+const CACHE_NAME = "lotus-hair-static-v2";
 const STATIC_ASSETS = [
-  "/static/core/styles.css?v=2.5",
+  "/static/core/styles.css?v=2.7",
   "/static/core/img/logo.jpeg",
   "/static/core/img/pwa-icon-192.png",
   "/static/core/img/pwa-icon-512.png",

@@ -14,7 +14,7 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="{% static 'core/manifest.webmanifest' %}">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2.6">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2.7">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
@@ -193,8 +193,16 @@
           button.hidden = hidden;
         });
       };
+      const setInstallGuidanceText = () => {
+        if (!installText) return;
+        if (isIOS) {
+          installText.textContent = "Sur iPhone : touchez Partager, puis Sur l'ecran d'accueil.";
+          return;
+        }
+        installText.textContent = "Si la fenetre d'installation ne s'ouvre pas, ouvrez le menu du navigateur puis choisissez Installer l'application ou Ajouter a l'ecran d'accueil.";
+      };
       const showInstallBanner = (force = false) => {
-        if (!installBanner || isStandalone || !isMobile || (!force && dismissedRecently)) return;
+        if (!installBanner || isStandalone || (!force && (!isMobile || dismissedRecently))) return;
         installBanner.hidden = false;
       };
       const hideInstallBanner = () => {
@@ -208,6 +216,7 @@
         installButtons.forEach(button => {
           button.addEventListener('click', async () => {
             if (!deferredInstallPrompt) {
+              setInstallGuidanceText();
               showInstallBanner(true);
               return;
             }
@@ -229,15 +238,15 @@
 
         if (isIOS && !isStandalone) {
           setInstallButtonsHidden(false);
-          if (installText) installText.textContent = "Sur iPhone : touchez Partager, puis Sur l'ecran d'accueil.";
+          setInstallGuidanceText();
           showInstallBanner();
         }
 
-        if (!isIOS && !isStandalone && isMobile) {
+        if (!isIOS && !isStandalone) {
           window.setTimeout(() => {
             if (deferredInstallPrompt) return;
             setInstallButtonsHidden(false);
-            if (installText) installText.textContent = "Ouvrez le menu du navigateur, puis choisissez Installer l'application ou Ajouter a l'ecran d'accueil.";
+            setInstallGuidanceText();
             showInstallBanner();
           }, 1400);
         }
