@@ -12,7 +12,7 @@
     </div>
   </div>
 
-  <section class="panel admin-list-panel late-members-panel">
+  <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 18px;">
     <h2>Membres en retard de cotisation</h2>
     <div class="list">
       {% for member in late_members %}
@@ -27,7 +27,7 @@
           </div>
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
-            <button class="btn primary" type="button" data-admin-modal-open="#payment-form-modal">Enregistrer</button>
+            <button class="btn primary" type="button" data-admin-modal-open="#payment-form-modal" data-payment-member="{{ member.id }}">Enregistrer</button>
           </div>
         </div>
       {% empty %}
