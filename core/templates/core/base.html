@@ -5,8 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Lotus Hair est une application de suivi de ristourne de perruques pour gerer les membres, les cycles, les versements, les choix de modeles et les receptions.">
+  <meta name="theme-color" content="#3E1B25">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Lotus Hair">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>{% block title %}Lotus Hair{% endblock %}</title>
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
+  <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
+  <link rel="manifest" href="{% static 'core/manifest.webmanifest' %}">
   <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2.5">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
@@ -139,6 +146,12 @@
   {% endif %}
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+        });
+      }
+
       document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', (e) => {
           // If it's a valid form submit, show loading spinner inside submit button

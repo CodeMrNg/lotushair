@@ -37,11 +37,19 @@
     </article>
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-        <span>Jours restants</span>
+        <span>Jours restants cycle</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
       <strong>{{ member.days_remaining }}</strong>
       <small>Fin du cycle : {{ cycle_ends_on|date:"d F Y" }}</small>
+    </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Jours restant ristourne</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/></svg>
+      </div>
+      <strong>{{ ristourne_days_remaining }}</strong>
+      <small>Fin ristourne : {{ ristourne_ends_on|date:"d F Y" }}</small>
     </article>
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
@@ -53,12 +61,27 @@
     </article>
   </div>
 
-  <section class="panel" style="margin-bottom: 28px;">
+  <section class="panel" style="margin-bottom: 28px;" data-cycle-start="{{ cycle_starts_on|date:'Y-m-d' }}" data-cycle-end="{{ cycle_ends_on|date:'Y-m-d' }}">
     <div class="section-head" style="border: none; padding-bottom: 0; margin-bottom: 12px;">
-      <h2>Progression globale</h2>
+      <h2>Progression globale de la ristourne</h2>
       <span style="font-weight: 700; color: var(--color-brand-plum);">{{ progress }}%</span>
     </div>
-    <div class="progress"><span style="width: {{ progress }}%"></span></div>
+    <div class="global-progress-meta">
+      <span>Cycle {{ current_group_cycle }} sur {{ total_group_cycles }}</span>
+      <span></span>
+    </div>
+    <div class="progress global-cycle-progress">
+      <span style="width: {{ progress }}%"></span>
+      {% for marker in cycle_progress_markers %}
+        <i
+          class="cycle-check {% if marker.is_done %}is-done{% endif %}"
+          style="left: {{ marker.position }}%;"
+          title="Fin cycle {{ forloop.counter }} : {{ marker.member.full_name }}"
+        >
+          {% if marker.is_done %}✓{% else %}{{ forloop.counter }}{% endif %}
+        </i>
+      {% endfor %}
+    </div>
   </section>
 
   <div class="split dashboard-split">

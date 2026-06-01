@@ -9,10 +9,18 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
 from .forms import CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
 from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
+
+
+@never_cache
+def service_worker(request):
+    response = render(request, "core/service_worker.js", content_type="application/javascript")
+    response["Service-Worker-Allowed"] = "/"
+    return response
 
 
 def current_member(request):
@@ -96,7 +104,6 @@ def member_dashboard(request):
     group_members = list(group.ordered_members().prefetch_related("payments"))
     payments = member.payments.all()[:8]
     total_paid = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
-    progress = min(int((group.current_day / group.cycle_days) * 100), 100) if group.cycle_days else 0
     cycle_starts_on = group.current_cycle_start
     cycle_ends_on = group.current_cycle_end
     today = timezone.localdate()
@@ -118,6 +125,21 @@ def member_dashboard(request):
     next_beneficiary = group.next_beneficiary()
     delivery_dates = {}
     current_member_index = group_members.index(next_beneficiary) if next_beneficiary in group_members else 0
+    total_cycle_days = max(len(group_members) * group.cycle_days, 1)
+    elapsed_cycle_days = min((current_member_index * group.cycle_days) + group.current_day, total_cycle_days)
+    progress = min(int((elapsed_cycle_days / total_cycle_days) * 100), 100)
+    ristourne_days_remaining = max(total_cycle_days - elapsed_cycle_days, 0)
+    ristourne_ends_on = cycle_starts_on + timezone.timedelta(days=ristourne_days_remaining)
+    cycle_progress_markers = []
+    for marker_index, group_member in enumerate(group_members):
+        cycle_end_position = int(((marker_index + 1) / max(len(group_members), 1)) * 100)
+        cycle_progress_markers.append(
+            {
+                "member": group_member,
+                "position": cycle_end_position,
+                "is_done": marker_index < current_member_index or (marker_index == current_member_index and group.current_day >= group.cycle_days),
+            }
+        )
     for member_index, group_member in enumerate(group_members):
         cycle_distance = member_index - current_member_index
         group_member.delivery_date = cycle_ends_on + timezone.timedelta(days=cycle_distance * group.cycle_days)
@@ -163,6 +185,11 @@ def member_dashboard(request):
             "payments": payments,
             "total_paid": total_paid,
             "progress": progress,
+            "cycle_progress_markers": cycle_progress_markers,
+            "total_group_cycles": len(group_members),
+            "current_group_cycle": current_member_index + 1 if group_members else 0,
+            "ristourne_days_remaining": ristourne_days_remaining,
+            "ristourne_ends_on": ristourne_ends_on,
             "cycle_starts_on": cycle_starts_on,
             "cycle_ends_on": cycle_ends_on,
             "next_beneficiary": next_beneficiary,

@@ -1,0 +1,42 @@
+{
+  "name": "Lotus Hair",
+  "short_name": "Lotus Hair",
+  "description": "Application de suivi de ristourne de perruques pour les membres, cycles, versements et choix de modeles.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#FAF9F6",
+  "theme_color": "#3E1B25",
+  "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["business", "finance", "shopping"],
+  "icons": [
+    {
+      "src": "/static/core/img/pwa-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/core/img/pwa-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tableau membre",
+      "short_name": "Tableau",
+      "url": "/membre/",
+      "icons": [{ "src": "/static/core/img/pwa-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Catalogue",
+      "short_name": "Catalogue",
+      "url": "/membre/catalogue/",
+      "icons": [{ "src": "/static/core/img/pwa-icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

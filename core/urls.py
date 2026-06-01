@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path("service-worker.js", views.service_worker, name="service_worker"),
     path("", views.member_login, name="login"),
     path("conditions/", views.terms, name="terms"),
     path("deconnexion/", views.member_logout, name="logout"),

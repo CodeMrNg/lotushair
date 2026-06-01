@@ -224,6 +224,31 @@ class LotusHairFlowTests(TestCase):
         self.assertEqual(response.context["cycle_ends_on"], self.group.current_cycle_end)
         self.assertContains(response, self.group.current_cycle_start.strftime("%Y-%m-%d"))
 
+    def test_member_global_progress_uses_all_group_cycles(self):
+        self.group.cycle_days = 15
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=16)
+        self.group.save()
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        second = Member.objects.create(full_name="Berenice Test", group=self.group, rank=2)
+        second.set_code("DEF456")
+        second.save()
+        third = Member.objects.create(full_name="Carine Test", group=self.group, rank=3)
+        third.set_code("GHI789")
+        third.save()
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertEqual(response.context["total_group_cycles"], 3)
+        self.assertEqual(response.context["current_group_cycle"], 2)
+        self.assertEqual(response.context["progress"], 37)
+        self.assertEqual(len(response.context["cycle_progress_markers"]), 3)
+        self.assertTrue(response.context["cycle_progress_markers"][0]["is_done"])
+
     def test_member_delivery_dates_are_cycle_end_dates(self):
         self.group.cycle_days = 15
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=16)
