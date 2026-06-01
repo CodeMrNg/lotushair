@@ -170,6 +170,41 @@ img {
   height: 20px;
   flex: 0 0 auto;
 }
+.install-nav-button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border: 1px solid rgba(197, 160, 89, 0.5);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-plum);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s, border-color 0.2s;
+}
+.install-nav-button:hover {
+  background: var(--color-brand-plum-light);
+  border-color: var(--color-gold-metallic);
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-1px);
+}
+.install-nav-button svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+.side-nav .install-nav-button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 8px;
+  justify-content: flex-start;
+  padding: 0 16px;
+}
 
 /* Dashboard stage */
 .dashboard-stage {
@@ -2185,6 +2220,19 @@ input[name="code"]:focus {
     border-radius: var(--radius-sm);
   }
   .side-nav a svg { width: 13px; height: 13px; }
+  .side-nav .install-nav-button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 34px;
+    margin-top: 0;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+  }
+  .side-nav .install-nav-button svg {
+    width: 13px;
+    height: 13px;
+  }
   .help-card { display: none; }
 
   .app-main {
@@ -2708,6 +2756,29 @@ input[name="code"]:focus {
     gap: 6px;
   }
   .side-nav a svg { display: none; }
+  .side-nav .install-nav-button {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 0.7rem;
+  }
+  .side-nav .install-nav-button svg {
+    display: none;
+  }
+  .topbar-install-button {
+    min-width: 44px;
+    padding: 0;
+  }
+  .topbar-install-button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   .app-sidebar {
     align-items: flex-start;
     flex-direction: column;

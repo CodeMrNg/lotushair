@@ -29,6 +29,15 @@ class MemberForm(forms.ModelForm):
 
 
 class PaymentForm(forms.ModelForm):
+    member = forms.ModelChoiceField(
+        label="Membre",
+        queryset=Member.objects.select_related("group").filter(is_active=True),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["member"].label_from_instance = lambda member: f"{member.full_name} ({member.group.name})"
+
     class Meta:
         model = Payment
         fields = ["member", "amount", "paid_on", "status", "note"]

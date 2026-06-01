@@ -14,7 +14,7 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="{% static 'core/manifest.webmanifest' %}">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2.5">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=2.6">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body>
@@ -44,6 +44,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Déconnexion
               </a>
+              <button class="install-nav-button" type="button" data-pwa-install-button hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                Installer
+              </button>
             {% else %}
               <a class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}" href="{% url 'staff_dashboard' %}">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
@@ -69,6 +73,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                 Déconnexion
               </a>
+              <button class="install-nav-button" type="button" data-pwa-install-button hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                Installer
+              </button>
             {% endif %}
           </nav>
           <div class="help-card">
@@ -90,6 +98,10 @@
           </span>
         </a>
         <nav class="topbar-actions" aria-label="Navigation principale">
+          <button class="install-nav-button topbar-install-button" type="button" data-pwa-install-button hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            <span>Installer</span>
+          </button>
           <a class="icon-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}" href="{% url 'login' %}" aria-label="Espace membre" title="Espace membre">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 20a6 6 0 0 0-12 0"/><circle cx="12" cy="10" r="4"/><circle cx="12" cy="12" r="10"/></svg>
             <span class="sr-only">Membre</span>
@@ -166,7 +178,7 @@
       }
 
       const installBanner = document.querySelector('[data-pwa-install-banner]');
-      const installButton = document.querySelector('[data-pwa-install-button]');
+      const installButtons = document.querySelectorAll('[data-pwa-install-button]');
       const installText = document.querySelector('[data-pwa-install-text]');
       const installClose = document.querySelector('[data-pwa-install-close]');
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -176,8 +188,13 @@
       const dismissedRecently = dismissedAt && Date.now() - dismissedAt < 1000 * 60 * 60 * 24 * 3;
       let deferredInstallPrompt = null;
 
-      const showInstallBanner = () => {
-        if (!installBanner || isStandalone || !isMobile || dismissedRecently) return;
+      const setInstallButtonsHidden = (hidden) => {
+        installButtons.forEach(button => {
+          button.hidden = hidden;
+        });
+      };
+      const showInstallBanner = (force = false) => {
+        if (!installBanner || isStandalone || !isMobile || (!force && dismissedRecently)) return;
         installBanner.hidden = false;
       };
       const hideInstallBanner = () => {
@@ -188,24 +205,30 @@
 
       if (installBanner) {
         installClose?.addEventListener('click', hideInstallBanner);
-        installButton?.addEventListener('click', async () => {
-          if (!deferredInstallPrompt) return;
-          deferredInstallPrompt.prompt();
-          await deferredInstallPrompt.userChoice;
-          deferredInstallPrompt = null;
-          hideInstallBanner();
+        installButtons.forEach(button => {
+          button.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) {
+              showInstallBanner(true);
+              return;
+            }
+            deferredInstallPrompt.prompt();
+            await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            setInstallButtonsHidden(true);
+            hideInstallBanner();
+          });
         });
 
         window.addEventListener('beforeinstallprompt', (event) => {
           event.preventDefault();
           deferredInstallPrompt = event;
-          if (installButton) installButton.hidden = false;
+          setInstallButtonsHidden(false);
           if (installText) installText.textContent = "Installez Lotus Hair pour y acceder rapidement depuis l'ecran d'accueil.";
           showInstallBanner();
         });
 
         if (isIOS && !isStandalone) {
-          if (installButton) installButton.hidden = true;
+          setInstallButtonsHidden(false);
           if (installText) installText.textContent = "Sur iPhone : touchez Partager, puis Sur l'ecran d'accueil.";
           showInstallBanner();
         }
@@ -213,13 +236,16 @@
         if (!isIOS && !isStandalone && isMobile) {
           window.setTimeout(() => {
             if (deferredInstallPrompt) return;
-            if (installButton) installButton.hidden = true;
+            setInstallButtonsHidden(false);
             if (installText) installText.textContent = "Ouvrez le menu du navigateur, puis choisissez Installer l'application ou Ajouter a l'ecran d'accueil.";
             showInstallBanner();
           }, 1400);
         }
 
-        window.addEventListener('appinstalled', hideInstallBanner);
+        window.addEventListener('appinstalled', () => {
+          setInstallButtonsHidden(true);
+          hideInstallBanner();
+        });
       }
 
       document.querySelectorAll('form').forEach(form => {
