@@ -32,6 +32,7 @@ ALLOWED_HOSTS = ['www.lotushair.pythonanywhere.com','lotushair.pythonanywhere.co
 
 INSTALLED_APPS = [
     'core',
+    'pwa',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -127,6 +128,55 @@ LOGIN_REDIRECT_URL = 'staff_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 SESSION_COOKIE_AGE = 60 * 60 * 6
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+PWA_SERVICE_WORKER_PATH = BASE_DIR / 'core' / 'templates' / 'core' / 'service_worker.js'
+PWA_APP_NAME = 'Lotus Hair'
+PWA_APP_DESCRIPTION = 'Application de suivi de ristourne de perruques pour les membres, cycles, versements et choix de modeles.'
+PWA_APP_THEME_COLOR = '#3E1B25'
+PWA_APP_BACKGROUND_COLOR = '#FAF9F6'
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_SCOPE = '/'
+PWA_APP_START_URL = '/'
+PWA_APP_ORIENTATION = 'portrait-primary'
+PWA_APP_STATUS_BAR_COLOR = 'black-translucent'
+PWA_APP_LANG = 'fr'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/core/img/pwa-icon-192.png',
+        'sizes': '192x192',
+        'type': 'image/png',
+        'purpose': 'any maskable',
+    },
+    {
+        'src': '/static/core/img/pwa-icon-512.png',
+        'sizes': '512x512',
+        'type': 'image/png',
+        'purpose': 'any maskable',
+    },
+]
+PWA_APP_ICONS_APPLE = [
+    {
+        'src': '/static/core/img/pwa-icon-192.png',
+        'sizes': '192x192',
+    },
+]
+PWA_APP_SHORTCUTS = [
+    {
+        'name': 'Tableau membre',
+        'short_name': 'Tableau',
+        'url': '/membre/',
+        'description': 'Ouvrir le tableau membre',
+        'icons': [{'src': '/static/core/img/pwa-icon-192.png', 'sizes': '192x192'}],
+    },
+    {
+        'name': 'Catalogue',
+        'short_name': 'Catalogue',
+        'url': '/membre/catalogue/',
+        'description': 'Ouvrir le catalogue',
+        'icons': [{'src': '/static/core/img/pwa-icon-192.png', 'sizes': '192x192'}],
+    },
+]
+PWA_APP_SPLASH_SCREEN = []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -1,10 +1,11 @@
-const CACHE_NAME = "lotus-hair-static-v2";
+const CACHE_NAME = "lotus-hair-static-v3";
 const STATIC_ASSETS = [
+  "/offline/",
   "/static/core/styles.css?v=2.7",
   "/static/core/img/logo.jpeg",
   "/static/core/img/pwa-icon-192.png",
   "/static/core/img/pwa-icon-512.png",
-  "/static/core/manifest.webmanifest"
+  "/manifest.json"
 ];
 
 self.addEventListener("install", event => {
@@ -44,12 +45,7 @@ self.addEventListener("fetch", event => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).catch(() =>
-        new Response(
-          "<!doctype html><html lang=\"fr\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>Lotus Hair hors ligne</title><body style=\"font-family:system-ui;padding:24px;background:#FAF9F6;color:#3E1B25\"><h1>Lotus Hair</h1><p>Connexion indisponible. Reessayez lorsque le reseau est revenu.</p></body></html>",
-          { headers: { "Content-Type": "text/html; charset=utf-8" } }
-        )
-      )
+      fetch(request).catch(() => caches.match("/offline/"))
     );
   }
 });
