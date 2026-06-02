@@ -14,16 +14,16 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.1">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.6">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body class="page-is-loading">
   <div class="page-loader" data-page-loader aria-hidden="true">
     <div class="page-loader-card">
       <span class="page-loader-logo"><img src="{% static 'core/img/logo.jpeg' %}" alt=""></span>
-      <span class="page-loader-ring"></span>
-      <strong>Lotus Hair</strong>
+      <strong>Chargement</strong>
     </div>
+    <span class="page-loader-bar"></span>
   </div>
   <a class="skip-link" href="#content">Aller au contenu</a>
   {% if request.session.member_id or request.user.is_authenticated %}
