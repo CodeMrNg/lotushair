@@ -141,6 +141,16 @@ class LotusHairFlowTests(TestCase):
         self.assertRedirects(response, reverse("accounting"))
         self.assertTrue(AccountingWithdrawal.objects.filter(amount=2500, note="Achat fournitures").exists())
 
+    def test_accounting_group_stats_are_paginated_by_ten(self):
+        for index in range(12):
+            RistourneGroup.objects.create(name=f"Groupe compta {index:02d}")
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("accounting"))
+
+        self.assertEqual(len(response.context["group_stats"]), 10)
+        self.assertContains(response, "Page 1 / 2")
+
     def test_large_payment_counts_as_multiple_daily_payments(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=1)
         self.group.save()

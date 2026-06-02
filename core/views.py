@@ -615,7 +615,15 @@ def accounting(request):
             cycle_stats.append(cycle)
 
     cycle_stats.sort(key=lambda item: (item["group"].name, item["cycle_number"]))
-    withdrawals = paginate_queryset(request, AccountingWithdrawal.objects.select_related("group", "member", "member__group"), per_page=10)
+    group_stats = paginate_queryset(request, group_stats, per_page=10, page_param="groups_page")
+    cycle_stats = paginate_queryset(request, cycle_stats, per_page=10, page_param="cycles_page")
+    member_stats = paginate_queryset(request, member_stats, per_page=10, page_param="members_page")
+    withdrawals = paginate_queryset(
+        request,
+        AccountingWithdrawal.objects.select_related("group", "member", "member__group"),
+        per_page=10,
+        page_param="withdrawals_page",
+    )
 
     return render(
         request,
@@ -627,9 +635,13 @@ def accounting(request):
             "total_withdrawals": total_withdrawals,
             "current_balance": current_balance,
             "group_stats": group_stats,
+            "groups_page_param": "groups_page",
             "member_stats": member_stats,
+            "members_page_param": "members_page",
             "cycle_stats": cycle_stats,
+            "cycles_page_param": "cycles_page",
             "withdrawals": withdrawals,
+            "withdrawals_page_param": "withdrawals_page",
         },
     )
 

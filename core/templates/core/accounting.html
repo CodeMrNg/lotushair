@@ -28,7 +28,7 @@
     </article>
   </div>
 
-  <section class="panel admin-list-panel">
+  <section class="panel admin-list-panel accounting-list-panel">
     <h2>Statistiques par groupe</h2>
     <div class="list">
       {% for item in group_stats %}
@@ -45,9 +45,10 @@
         <p class="empty-state">Aucun groupe enregistre.</p>
       {% endfor %}
     </div>
+    {% include "core/partials/pagination.html" with page_obj=group_stats page_param=groups_page_param %}
   </section>
 
-  <section class="panel admin-list-panel">
+  <section class="panel admin-list-panel accounting-list-panel">
     <h2>Statistiques par cycle</h2>
     <div class="list">
       {% for item in cycle_stats %}
@@ -64,9 +65,10 @@
         <p class="empty-state">Aucune operation comptable par cycle.</p>
       {% endfor %}
     </div>
+    {% include "core/partials/pagination.html" with page_obj=cycle_stats page_param=cycles_page_param %}
   </section>
 
-  <section class="panel admin-list-panel">
+  <section class="panel admin-list-panel accounting-list-panel">
     <h2>Statistiques par membre</h2>
     <div class="list">
       {% for item in member_stats %}
@@ -83,9 +85,10 @@
         <p class="empty-state">Aucun membre enregistre.</p>
       {% endfor %}
     </div>
+    {% include "core/partials/pagination.html" with page_obj=member_stats page_param=members_page_param %}
   </section>
 
-  <section class="panel admin-list-panel">
+  <section class="panel admin-list-panel accounting-list-panel">
     <h2>Derniers retraits</h2>
     <div class="list">
       {% for withdrawal in withdrawals %}
@@ -99,7 +102,7 @@
         <p class="empty-state">Aucun retrait enregistre.</p>
       {% endfor %}
     </div>
-    {% include "core/partials/pagination.html" with page_obj=withdrawals page_param="page" %}
+    {% include "core/partials/pagination.html" with page_obj=withdrawals page_param=withdrawals_page_param %}
   </section>
 
   <div class="admin-modal {% if form_open %}is-open{% endif %}" id="withdrawal-form-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawal-form-title" data-admin-modal>

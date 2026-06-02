@@ -782,6 +782,9 @@ p {
 .admin-list-panel {
   padding: 28px;
 }
+.accounting-list-panel {
+  margin-bottom: 22px;
+}
 .admin-list-panel h2,
 .admin-detail-panel h2 {
   margin: 0 0 20px;
@@ -2448,6 +2451,9 @@ input[name="code"]:focus {
   .admin-detail-panel,
   .admin-list-panel {
     padding: 16px;
+  }
+  .accounting-list-panel {
+    margin-bottom: 16px;
   }
   .admin-manage-page .split {
     grid-template-columns: 1fr;
