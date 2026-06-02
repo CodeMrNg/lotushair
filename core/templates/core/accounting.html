@@ -1,0 +1,133 @@
+{% extends "core/base.html" %}
+{% block title %}Compta - Lotus Hair{% endblock %}
+{% block content %}
+<section class="page admin-page admin-manage-page" style="padding-top: 10px;">
+  <div class="section-head" style="align-items: center;">
+    <h1 style="margin: 0;">Compta</h1>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#withdrawal-form-modal">Nouveau retrait</button>
+      <a class="btn" href="{% url 'staff_dashboard' %}">Retour</a>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    <article class="stat">
+      <span>Solde actuel</span>
+      <strong>{{ current_balance }} FCFA</strong>
+      <small>Versements confirmes moins retraits</small>
+    </article>
+    <article class="stat">
+      <span>Total versements</span>
+      <strong>{{ total_payments }} FCFA</strong>
+      <small>Somme confirmee</small>
+    </article>
+    <article class="stat danger">
+      <span>Total retraits</span>
+      <strong>{{ total_withdrawals }} FCFA</strong>
+      <small>Sorties de caisse</small>
+    </article>
+  </div>
+
+  <section class="panel admin-list-panel">
+    <h2>Statistiques par groupe</h2>
+    <div class="list">
+      {% for item in group_stats %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ item.group.name }}</span>
+            <small>{{ item.member_count }} membre(s) | Versements : {{ item.payments_total }} FCFA | Retraits : {{ item.withdrawals_total }} FCFA</small>
+          </div>
+          <div class="admin-row-meta">
+            <em>{{ item.balance }} FCFA</em>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun groupe enregistre.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel admin-list-panel">
+    <h2>Statistiques par cycle</h2>
+    <div class="list">
+      {% for item in cycle_stats %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ item.group.name }} - Cycle {{ item.cycle_number }}</span>
+            <small>{{ item.starts_on }} au {{ item.ends_on }} | Versements : {{ item.payments_total }} FCFA | Retraits : {{ item.withdrawals_total }} FCFA</small>
+          </div>
+          <div class="admin-row-meta">
+            <em>{{ item.balance }} FCFA</em>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucune operation comptable par cycle.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel admin-list-panel">
+    <h2>Statistiques par membre</h2>
+    <div class="list">
+      {% for item in member_stats %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ item.member.full_name }}</span>
+            <small>{{ item.member.group.name }} | Versements : {{ item.payments_total }} FCFA | Retraits : {{ item.withdrawals_total }} FCFA</small>
+          </div>
+          <div class="admin-row-meta">
+            <em>{{ item.balance }} FCFA</em>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun membre enregistre.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel admin-list-panel">
+    <h2>Derniers retraits</h2>
+    <div class="list">
+      {% for withdrawal in withdrawals %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ withdrawal.amount }} FCFA</span>
+            <small>{{ withdrawal.withdrawn_on }} | {% if withdrawal.member %}{{ withdrawal.member.full_name }}{% elif withdrawal.group %}{{ withdrawal.group.name }}{% else %}Solde general{% endif %}{% if withdrawal.note %} | {{ withdrawal.note }}{% endif %}</small>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun retrait enregistre.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=withdrawals page_param="page" %}
+  </section>
+
+  <div class="admin-modal {% if form_open %}is-open{% endif %}" id="withdrawal-form-modal" role="dialog" aria-modal="true" aria-labelledby="withdrawal-form-title" data-admin-modal>
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="withdrawal-form-title">Saisir un retrait</h2>
+      <form method="post" class="form-grid" action="{% url 'accounting' %}">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn primary" type="submit">Enregistrer le retrait</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}
+{% block rightbar %}
+  <div class="profile-card">
+    <img src="/static/core/img/logo.jpeg" alt="Lotus Hair">
+    <strong>Compta</strong>
+    <small>Solde : {{ current_balance }} FCFA</small>
+    <button class="btn primary" type="button" data-admin-modal-open="#withdrawal-form-modal" style="width: 100%;">Faire un retrait</button>
+  </div>
+  <div class="mini-panel">
+    <h2>Lecture</h2>
+    <div class="reminder">
+      <p>Les statistiques comptent uniquement les versements confirmes. Les retraits sans groupe restent dans le solde global.</p>
+    </div>
+  </div>
+{% endblock %}

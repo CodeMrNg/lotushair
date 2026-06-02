@@ -25,6 +25,9 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Nouveau paiement
       </a>
+      <a class="btn" href="{% url 'accounting' %}" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25);">
+        Compta
+      </a>
       <a class="btn" href="{% url 'manage_members' %}" style="background: rgba(255,255,255,0.1); color: #fff; border-color: rgba(255,255,255,0.25);">
         Nouveau membre
       </a>
@@ -121,6 +124,7 @@
     <h2>Actions rapides</h2>
     <a class="quick-action" href="{% url 'manage_groups' %}">Gestion des Groupes</a>
     <a class="quick-action" href="{% url 'manage_members' %}">Gestion des Membres</a>
+    <a class="quick-action" href="{% url 'accounting' %}">Compta</a>
     <a class="quick-action" href="{% url 'manage_catalog' %}">Gestion du Catalogue</a>
   </div>
 

@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Member, Payment, RistourneGroup, WigCatalog, WigImage
+from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigImage
 
 
 class CodeLoginForm(forms.Form):
@@ -44,13 +44,21 @@ class PaymentForm(forms.ModelForm):
         widgets = {"paid_on": forms.DateInput(attrs={"type": "date"})}
 
 
+class AccountingWithdrawalForm(forms.ModelForm):
+    class Meta:
+        model = AccountingWithdrawal
+        fields = ["amount", "withdrawn_on", "group", "member", "note"]
+        widgets = {"withdrawn_on": forms.DateInput(attrs={"type": "date"})}
+
+
 class WigForm(forms.ModelForm):
     class Meta:
         model = WigCatalog
-        fields = ["name", "description", "image", "colors", "sizes", "is_available"]
+        fields = ["name", "description", "image", "colors", "sizes", "visible_to_groups", "is_available"]
         widgets = {
             "colors": forms.TextInput(attrs={"placeholder": "Noir, Marron, Blond, Bordeaux"}),
             "sizes": forms.TextInput(attrs={"placeholder": "S, M, L, XL ou 10 pouces, 12 pouces, 14 pouces"}),
+            "visible_to_groups": forms.CheckboxSelectMultiple(),
         }
 
 

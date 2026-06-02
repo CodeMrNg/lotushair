@@ -37,6 +37,7 @@
               <span>{{ wig.name }}</span>
               <small>{{ wig.colors|default:"Aucune couleur listee" }}</small>
               <small>Tailles : {{ wig.sizes|default:"Aucune taille listee" }}</small>
+              <small>Groupes : {% for group in wig.visible_to_groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% empty %}Tous les groupes{% endfor %}</small>
               <small>{{ wig.gallery_images.all|length }} image(s) couleur</small>
             </div>
           </div>

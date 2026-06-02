@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
+from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 class LotusHairFlowTests(TestCase):
@@ -50,6 +50,8 @@ class LotusHairFlowTests(TestCase):
         self.assertContains(response, "Tableau de bord")
 
     def test_manage_payments_displays_late_members(self):
+        self.group.starts_on = timezone.localdate() - timezone.timedelta(days=1)
+        self.group.save()
         self.client.login(username="admin", password="admin1234")
 
         response = self.client.get(reverse("manage_payments"))
@@ -63,6 +65,82 @@ class LotusHairFlowTests(TestCase):
 
         self.assertContains(response, "Aucun membre en retard de cotisation.")
 
+    def test_member_is_not_late_before_or_on_group_start_date(self):
+        self.group.starts_on = timezone.localdate() + timezone.timedelta(days=1)
+        self.group.save()
+
+        self.assertEqual(self.member.payments_due, 0)
+        self.assertFalse(self.member.is_late)
+
+        self.group.starts_on = timezone.localdate()
+        self.group.save()
+
+        self.assertEqual(self.member.payments_due, 0)
+        self.assertFalse(self.member.is_late)
+
+    def test_group_detail_displays_group_and_member_payment_totals(self):
+        second = Member.objects.create(full_name="Berenice Test", group=self.group, rank=2)
+        second.set_code("DEF456")
+        second.save()
+        Payment.objects.create(member=self.member, amount=1250, status=Payment.Status.CONFIRMED)
+        Payment.objects.create(member=self.member, amount=2500, status=Payment.Status.CONFIRMED)
+        Payment.objects.create(member=self.member, amount=7000, status=Payment.Status.PENDING)
+        Payment.objects.create(member=second, amount=1250, status=Payment.Status.CONFIRMED)
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("group_detail", args=[self.group.id]))
+
+        self.assertContains(response, "Total versements")
+        self.assertContains(response, "5000 FCFA")
+        self.assertContains(response, "Total : 3750 FCFA")
+        self.assertContains(response, "Total : 1250 FCFA")
+        self.assertNotContains(response, "10750 FCFA")
+
+    def test_member_detail_displays_total_confirmed_payments(self):
+        Payment.objects.create(member=self.member, amount=1250, status=Payment.Status.CONFIRMED)
+        Payment.objects.create(member=self.member, amount=2500, status=Payment.Status.CONFIRMED)
+        Payment.objects.create(member=self.member, amount=7000, status=Payment.Status.PENDING)
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("member_detail_admin", args=[self.member.id]))
+
+        self.assertContains(response, "Total versements")
+        self.assertContains(response, "3750 FCFA")
+        self.assertNotContains(response, "10750 FCFA")
+
+    def test_accounting_displays_balance_and_stats(self):
+        Payment.objects.create(member=self.member, amount=5000, status=Payment.Status.CONFIRMED)
+        Payment.objects.create(member=self.member, amount=9000, status=Payment.Status.PENDING)
+        AccountingWithdrawal.objects.create(amount=1250, group=self.group, member=self.member, note="Retrait test")
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("accounting"))
+
+        self.assertContains(response, "Compta")
+        self.assertContains(response, "Solde actuel")
+        self.assertContains(response, "3750 FCFA")
+        self.assertContains(response, "Total retraits")
+        self.assertContains(response, "Retrait test")
+        self.assertContains(response, "Cycle 1")
+        self.assertNotContains(response, "14000 FCFA")
+
+    def test_accounting_can_create_withdrawal(self):
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.post(
+            reverse("accounting"),
+            {
+                "amount": 2500,
+                "withdrawn_on": timezone.localdate(),
+                "group": self.group.id,
+                "member": self.member.id,
+                "note": "Achat fournitures",
+            },
+        )
+
+        self.assertRedirects(response, reverse("accounting"))
+        self.assertTrue(AccountingWithdrawal.objects.filter(amount=2500, note="Achat fournitures").exists())
+
     def test_large_payment_counts_as_multiple_daily_payments(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=1)
         self.group.save()
@@ -71,7 +149,7 @@ class LotusHairFlowTests(TestCase):
 
         self.assertEqual(self.member.payments_done, 4)
         self.assertFalse(self.member.is_late)
-        self.assertEqual(self.member.payments_ahead, 2)
+        self.assertEqual(self.member.payments_ahead, 3)
         self.assertEqual(self.member.regularity_badge, "En avance")
 
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
@@ -102,6 +180,42 @@ class LotusHairFlowTests(TestCase):
         response = self.client.get(reverse("member_catalog"), {"q": "cuivre"})
         self.assertContains(response, "Lisse cuivre")
         self.assertNotContains(response, "Boucles volume")
+
+    def test_member_catalog_only_shows_wigs_visible_to_member_group(self):
+        other_group = RistourneGroup.objects.create(name="Autre groupe")
+        public_wig = WigCatalog.objects.create(name="Modele public", description="Visible pour tous")
+        private_wig = WigCatalog.objects.create(name="Modele du groupe", description="Visible pour le groupe")
+        hidden_wig = WigCatalog.objects.create(name="Modele cache", description="Visible ailleurs")
+        private_wig.visible_to_groups.add(self.group)
+        hidden_wig.visible_to_groups.add(other_group)
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_catalog"))
+
+        self.assertContains(response, public_wig.name)
+        self.assertContains(response, private_wig.name)
+        self.assertNotContains(response, hidden_wig.name)
+
+    def test_member_cannot_choose_wig_hidden_from_member_group(self):
+        other_group = RistourneGroup.objects.create(name="Autre groupe")
+        hidden_wig = WigCatalog.objects.create(name="Modele cache", description="Visible ailleurs")
+        hidden_wig.visible_to_groups.add(other_group)
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.post(reverse("choose_wig", args=[hidden_wig.id]))
+
+        self.assertEqual(response.status_code, 404)
+        self.assertFalse(WigChoice.objects.filter(member=self.member, wig=hidden_wig).exists())
 
     def test_member_choose_wig_records_color(self):
         self.member.accepted_terms_at = timezone.now()

@@ -16,6 +16,7 @@
       <div class="detail-item"><small>Debut</small><strong>{{ group.current_cycle_start }}</strong></div>
       <div class="detail-item"><small>Fin</small><strong>{{ group.current_cycle_end }}</strong></div>
       <div class="detail-item"><small>Versement</small><strong>{{ group.contribution_amount }} FCFA</strong></div>
+      <div class="detail-item"><small>Total versements</small><strong>{{ total_group_payments }} FCFA</strong></div>
       <div class="detail-item"><small>Rythme</small><strong>{{ group.payment_frequency_days }} jour(s)</strong></div>
       <div class="detail-item"><small>Beneficiaire</small><strong>{{ group.next_beneficiary|default:"Aucun" }}</strong></div>
       <div class="detail-item"><small>Statut</small><strong>{% if group.is_active %}Actif{% else %}Inactif{% endif %}</strong></div>
@@ -29,7 +30,7 @@
         <div class="row admin-row">
           <div>
             <span>{{ member.full_name }}</span>
-            <small>Rang : {{ member.rank }} | Versements : {{ member.payments_done }}/{{ group.expected_payments }}</small>
+            <small>Rang : {{ member.rank }} | Versements : {{ member.payments_done }}/{{ group.expected_payments }} | Total : {{ member.total_confirmed_payments|default:0 }} FCFA</small>
           </div>
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>

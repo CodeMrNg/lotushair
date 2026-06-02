@@ -1549,6 +1549,99 @@ form p input[type="checkbox"] {
   align-self: flex-start;
   margin-top: 4px;
 }
+form p .helptext {
+  display: block;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+.form-grid p > div:has(input[type="checkbox"]) {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #FBFAF8;
+}
+.form-grid p > div:has(input[type="checkbox"]) > div {
+  min-width: 0;
+}
+.form-grid p > div:has(input[type="checkbox"]) label {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
+}
+.form-grid p > div:has(input[type="checkbox"]) input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-brand-plum);
+}
+#id_visible_to_groups {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: #FBFAF8;
+}
+#id_visible_to_groups > div {
+  min-width: 0;
+}
+#id_visible_to_groups label {
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--color-text-main);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
+}
+#id_visible_to_groups input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-brand-plum);
+}
+form p:has(> input[type="checkbox"]) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 12px;
+}
+form p:has(> input[type="checkbox"]) > input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  min-height: 18px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-brand-plum);
+}
 
 /* Customized Login Code Input */
 input[name="code"] {

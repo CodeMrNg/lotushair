@@ -12,8 +12,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
-from .forms import CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
-from .models import Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
+from .forms import AccountingWithdrawalForm, CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
+from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
 
 
 @never_cache
@@ -204,7 +204,11 @@ def member_dashboard(request):
 @member_required
 def member_catalog(request):
     query = request.GET.get("q", "").strip()
-    wigs = WigCatalog.objects.prefetch_related("gallery_images")
+    wigs = (
+        WigCatalog.objects.filter(Q(visible_to_groups__isnull=True) | Q(visible_to_groups=request.member.group))
+        .prefetch_related("gallery_images")
+        .distinct()
+    )
     if query:
         wigs = wigs.filter(Q(name__icontains=query) | Q(description__icontains=query) | Q(colors__icontains=query) | Q(sizes__icontains=query))
     return render(
@@ -227,7 +231,11 @@ def choose_wig(request, wig_id):
     if has_received_wig_this_cycle(request.member):
         messages.error(request, "Vous avez deja recu votre perruque pour ce cycle. Le choix du catalogue est bloque.")
         return redirect("member_catalog")
-    wig = get_object_or_404(WigCatalog, id=wig_id, is_available=True)
+    wig = get_object_or_404(
+        WigCatalog.objects.filter(Q(visible_to_groups__isnull=True) | Q(visible_to_groups=request.member.group)).distinct(),
+        id=wig_id,
+        is_available=True,
+    )
     selected_color = request.POST.get("color", "").strip()
     selected_size = request.POST.get("size", "").strip()
     available_colors = wig.available_colors
@@ -331,8 +339,25 @@ def manage_groups(request):
 @staff_required
 def group_detail(request, group_id):
     group = get_object_or_404(RistourneGroup, id=group_id)
-    members = paginate_queryset(request, group.ordered_members(), per_page=10, page_param="members_page")
-    return render(request, "core/detail_group.html", {"group": group, "form": GroupForm(instance=group), "members": members, "members_page_param": "members_page"})
+    members_queryset = group.ordered_members().annotate(
+        total_confirmed_payments=Sum("payments__amount", filter=Q(payments__status=Payment.Status.CONFIRMED))
+    )
+    members = paginate_queryset(request, members_queryset, per_page=10, page_param="members_page")
+    total_group_payments = (
+        Payment.objects.filter(member__group=group, member__is_active=True, status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"]
+        or 0
+    )
+    return render(
+        request,
+        "core/detail_group.html",
+        {
+            "group": group,
+            "form": GroupForm(instance=group),
+            "members": members,
+            "members_page_param": "members_page",
+            "total_group_payments": total_group_payments,
+        },
+    )
 
 
 @staff_required
@@ -343,8 +368,26 @@ def edit_group(request, group_id):
         form.save()
         messages.success(request, "Groupe modifie.")
         return redirect("group_detail", group_id=group.id)
-    members = paginate_queryset(request, group.ordered_members(), per_page=10, page_param="members_page")
-    return render(request, "core/detail_group.html", {"group": group, "form": form, "members": members, "members_page_param": "members_page", "edit_open": True})
+    members_queryset = group.ordered_members().annotate(
+        total_confirmed_payments=Sum("payments__amount", filter=Q(payments__status=Payment.Status.CONFIRMED))
+    )
+    members = paginate_queryset(request, members_queryset, per_page=10, page_param="members_page")
+    total_group_payments = (
+        Payment.objects.filter(member__group=group, member__is_active=True, status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"]
+        or 0
+    )
+    return render(
+        request,
+        "core/detail_group.html",
+        {
+            "group": group,
+            "form": form,
+            "members": members,
+            "members_page_param": "members_page",
+            "total_group_payments": total_group_payments,
+            "edit_open": True,
+        },
+    )
 
 
 @staff_required
@@ -375,6 +418,7 @@ def manage_members(request):
 def member_detail_admin(request, member_id):
     member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
+    total_member_payments = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     selected_choice = member.selected_wig_choice
     selected_choice_image = None
     if selected_choice:
@@ -389,6 +433,7 @@ def member_detail_admin(request, member_id):
             "form": MemberForm(instance=member),
             "payments": payments,
             "payments_page_param": "payments_page",
+            "total_member_payments": total_member_payments,
             "selected_choice": selected_choice,
             "selected_choice_image": selected_choice_image,
         },
@@ -404,6 +449,7 @@ def edit_member(request, member_id):
         messages.success(request, "Membre modifie.")
         return redirect("member_detail_admin", member_id=member.id)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
+    total_member_payments = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     selected_choice = member.selected_wig_choice
     selected_choice_image = None
     if selected_choice:
@@ -418,6 +464,7 @@ def edit_member(request, member_id):
             "form": form,
             "payments": payments,
             "payments_page_param": "payments_page",
+            "total_member_payments": total_member_payments,
             "selected_choice": selected_choice,
             "selected_choice_image": selected_choice_image,
             "edit_open": True,
@@ -480,6 +527,109 @@ def manage_payments(request):
             "late_members": late_members,
             "form_open": request.method == "POST",
             "query": query,
+        },
+    )
+
+
+@staff_required
+def accounting(request):
+    form = AccountingWithdrawalForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Retrait enregistre.")
+        return redirect("accounting")
+
+    total_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+    total_withdrawals = AccountingWithdrawal.objects.aggregate(total=Sum("amount"))["total"] or 0
+    current_balance = total_payments - total_withdrawals
+
+    group_stats = []
+    for group in RistourneGroup.objects.all():
+        payments_total = Payment.objects.filter(member__group=group, status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+        withdrawals_total = AccountingWithdrawal.objects.filter(group=group).aggregate(total=Sum("amount"))["total"] or 0
+        group_stats.append(
+            {
+                "group": group,
+                "member_count": group.members.filter(is_active=True).count(),
+                "payments_total": payments_total,
+                "withdrawals_total": withdrawals_total,
+                "balance": payments_total - withdrawals_total,
+            }
+        )
+
+    member_stats = []
+    for member in Member.objects.select_related("group"):
+        payments_total = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+        withdrawals_total = member.withdrawals.aggregate(total=Sum("amount"))["total"] or 0
+        member_stats.append(
+            {
+                "member": member,
+                "payments_total": payments_total,
+                "withdrawals_total": withdrawals_total,
+                "balance": payments_total - withdrawals_total,
+            }
+        )
+
+    cycle_stats = []
+    for group in RistourneGroup.objects.all():
+        cycle_days = max(group.cycle_days, 1)
+        cycle_map = {}
+        payments = Payment.objects.filter(member__group=group, status=Payment.Status.CONFIRMED).select_related("member")
+        for payment in payments:
+            elapsed_days = (payment.paid_on - group.starts_on).days
+            cycle_number = max(1, (elapsed_days // cycle_days) + 1)
+            cycle_start = group.starts_on + timezone.timedelta(days=(cycle_number - 1) * cycle_days)
+            cycle = cycle_map.setdefault(
+                cycle_number,
+                {
+                    "group": group,
+                    "cycle_number": cycle_number,
+                    "starts_on": cycle_start,
+                    "ends_on": cycle_start + timezone.timedelta(days=cycle_days - 1),
+                    "payments_total": 0,
+                    "withdrawals_total": 0,
+                },
+            )
+            cycle["payments_total"] += payment.amount
+
+        withdrawals = AccountingWithdrawal.objects.filter(group=group)
+        for withdrawal in withdrawals:
+            elapsed_days = (withdrawal.withdrawn_on - group.starts_on).days
+            cycle_number = max(1, (elapsed_days // cycle_days) + 1)
+            cycle_start = group.starts_on + timezone.timedelta(days=(cycle_number - 1) * cycle_days)
+            cycle = cycle_map.setdefault(
+                cycle_number,
+                {
+                    "group": group,
+                    "cycle_number": cycle_number,
+                    "starts_on": cycle_start,
+                    "ends_on": cycle_start + timezone.timedelta(days=cycle_days - 1),
+                    "payments_total": 0,
+                    "withdrawals_total": 0,
+                },
+            )
+            cycle["withdrawals_total"] += withdrawal.amount
+
+        for cycle in cycle_map.values():
+            cycle["balance"] = cycle["payments_total"] - cycle["withdrawals_total"]
+            cycle_stats.append(cycle)
+
+    cycle_stats.sort(key=lambda item: (item["group"].name, item["cycle_number"]))
+    withdrawals = paginate_queryset(request, AccountingWithdrawal.objects.select_related("group", "member", "member__group"), per_page=10)
+
+    return render(
+        request,
+        "core/accounting.html",
+        {
+            "form": form,
+            "form_open": request.method == "POST",
+            "total_payments": total_payments,
+            "total_withdrawals": total_withdrawals,
+            "current_balance": current_balance,
+            "group_stats": group_stats,
+            "member_stats": member_stats,
+            "cycle_stats": cycle_stats,
+            "withdrawals": withdrawals,
         },
     )
 

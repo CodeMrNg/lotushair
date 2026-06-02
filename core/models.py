@@ -112,7 +112,9 @@ class Member(models.Model):
 
     @property
     def payments_due(self):
-        return max(0, self.group.current_day // self.group.payment_frequency_days)
+        frequency_days = max(self.group.payment_frequency_days, 1)
+        elapsed_days = (timezone.localdate() - self.group.starts_on).days
+        return max(0, elapsed_days // frequency_days)
 
     @property
     def payments_ahead(self):
@@ -174,6 +176,38 @@ class Payment(models.Model):
         return f"{self.member} - {self.amount} FCFA"
 
 
+class AccountingWithdrawal(models.Model):
+    amount = models.PositiveIntegerField("montant")
+    withdrawn_on = models.DateField("date de retrait", default=timezone.localdate)
+    group = models.ForeignKey(
+        RistourneGroup,
+        on_delete=models.SET_NULL,
+        related_name="withdrawals",
+        verbose_name="groupe",
+        null=True,
+        blank=True,
+    )
+    member = models.ForeignKey(
+        Member,
+        on_delete=models.SET_NULL,
+        related_name="withdrawals",
+        verbose_name="membre",
+        null=True,
+        blank=True,
+    )
+    note = models.CharField("note", max_length=220, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-withdrawn_on", "-created_at"]
+        verbose_name = "retrait comptable"
+        verbose_name_plural = "retraits comptables"
+
+    def __str__(self):
+        target = self.member or self.group or "Solde general"
+        return f"{target} - {self.amount} FCFA"
+
+
 class WigCatalog(models.Model):
     name = models.CharField("nom du modele", max_length=140)
     description = models.TextField("description")
@@ -181,6 +215,13 @@ class WigCatalog(models.Model):
     image_url = models.URLField("image", blank=True)
     colors = models.CharField("couleurs disponibles", max_length=255, blank=True, help_text="Separez les couleurs par des virgules.")
     sizes = models.CharField("tailles disponibles", max_length=255, blank=True, help_text="Separez les tailles par des virgules.")
+    visible_to_groups = models.ManyToManyField(
+        RistourneGroup,
+        blank=True,
+        related_name="visible_wigs",
+        verbose_name="groupes autorises",
+        help_text="Laissez vide pour rendre ce modele visible a tous les groupes.",
+    )
     is_available = models.BooleanField("disponible", default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

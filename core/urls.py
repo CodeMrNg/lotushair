@@ -21,6 +21,7 @@ urlpatterns = [
     path("gestion/membres/<int:member_id>/modifier/", views.edit_member, name="edit_member"),
     path("gestion/membres/<int:member_id>/code/", views.regenerate_code, name="regenerate_code"),
     path("gestion/paiements/", views.manage_payments, name="manage_payments"),
+    path("gestion/compta/", views.accounting, name="accounting"),
     path("gestion/paiements/<int:payment_id>/", views.payment_detail, name="payment_detail"),
     path("gestion/paiements/<int:payment_id>/modifier/", views.edit_payment, name="edit_payment"),
     path("gestion/catalogue/", views.manage_catalog, name="manage_catalog"),
