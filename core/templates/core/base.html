@@ -14,10 +14,17 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.0">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.1">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
-<body>
+<body class="page-is-loading">
+  <div class="page-loader" data-page-loader aria-hidden="true">
+    <div class="page-loader-card">
+      <span class="page-loader-logo"><img src="{% static 'core/img/logo.jpeg' %}" alt=""></span>
+      <span class="page-loader-ring"></span>
+      <strong>Lotus Hair</strong>
+    </div>
+  </div>
   <a class="skip-link" href="#content">Aller au contenu</a>
   {% if request.session.member_id or request.user.is_authenticated %}
     <div class="dashboard-stage">
@@ -175,6 +182,22 @@
   {% endif %}
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      const pageLoader = document.querySelector('[data-page-loader]');
+      const hidePageLoader = () => {
+        document.body.classList.remove('page-is-loading');
+        document.body.classList.add('page-has-loaded');
+      };
+      const showPageLoader = () => {
+        if (!pageLoader) return;
+        document.body.classList.remove('page-has-loaded');
+        document.body.classList.add('page-is-loading');
+      };
+      window.addEventListener('load', () => {
+        window.setTimeout(hidePageLoader, 180);
+      });
+      window.addEventListener('pageshow', hidePageLoader);
+      window.setTimeout(hidePageLoader, 900);
+
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/serviceworker.js', { scope: '/' }).catch(() => {});
@@ -267,9 +290,30 @@
           const btn = form.querySelector('button[type="submit"]');
           if (btn && !form.hasAttribute('hx-post')) { // Let HTMX handle hx-post triggers
             btn.classList.add('btn-loading');
+            showPageLoader();
             // Slight delay to allow submission, then disable to prevent double clicks
             setTimeout(() => { btn.disabled = true; }, 20);
           }
+        });
+      });
+
+      document.querySelectorAll('a[href]').forEach(link => {
+        link.addEventListener('click', () => {
+          const target = link.getAttribute('target');
+          const href = link.getAttribute('href') || '';
+          if (
+            target ||
+            href.startsWith('#') ||
+            href.startsWith('tel:') ||
+            href.startsWith('mailto:') ||
+            link.hasAttribute('download')
+          ) {
+            return;
+          }
+          try {
+            const url = new URL(href, window.location.href);
+            if (url.origin === window.location.origin && url.href !== window.location.href) showPageLoader();
+          } catch (_) {}
         });
       });
       
