@@ -14,7 +14,7 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.6">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.7">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body class="page-is-loading">
@@ -211,6 +211,7 @@
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
       const isMobile = window.matchMedia('(max-width: 768px)').matches;
       const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+      const isSafari = /^((?!chrome|android|crios|fxios|edgios).)*safari/i.test(navigator.userAgent);
       const dismissedAt = Number(localStorage.getItem('lotusHairInstallDismissedAt') || 0);
       const dismissedRecently = dismissedAt && Date.now() - dismissedAt < 1000 * 60 * 60 * 24 * 3;
       let deferredInstallPrompt = null;
@@ -239,6 +240,7 @@
       };
 
       if (installBanner) {
+        setInstallButtonsHidden(true);
         installClose?.addEventListener('click', hideInstallBanner);
         installButtons.forEach(button => {
           button.addEventListener('click', async () => {
@@ -263,19 +265,10 @@
           showInstallBanner();
         });
 
-        if (isIOS && !isStandalone) {
+        if (isIOS && isSafari && !isStandalone) {
           setInstallButtonsHidden(false);
           setInstallGuidanceText();
           showInstallBanner();
-        }
-
-        if (!isIOS && !isStandalone) {
-          window.setTimeout(() => {
-            if (deferredInstallPrompt) return;
-            setInstallButtonsHidden(false);
-            setInstallGuidanceText();
-            showInstallBanner();
-          }, 1400);
         }
 
         window.addEventListener('appinstalled', () => {
