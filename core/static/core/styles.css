@@ -1585,6 +1585,23 @@ p {
   background-size: 28px 28px;
   opacity: 0.5;
 }
+main:has(.auth-shell) {
+  background-color: #F5EFE8;
+  background-image:
+    linear-gradient(135deg, rgba(197,160,89,0.07) 25%, transparent 25%),
+    linear-gradient(225deg, rgba(197,160,89,0.07) 25%, transparent 25%),
+    linear-gradient(315deg, rgba(197,160,89,0.07) 25%, transparent 25%),
+    linear-gradient(45deg,  rgba(197,160,89,0.07) 25%, transparent 25%);
+  background-size: 40px 40px;
+  background-position: 0 0, 0 20px, 20px -20px, -20px 0;
+  animation: patternDrift 12s linear infinite;
+  padding-bottom: 28px;
+}
+main:has(.auth-shell) .auth-shell {
+  background-color: transparent;
+  background-image: none;
+  animation: none;
+}
 .auth-panel {
   width: min(440px, 100%);
   padding: 44px;
@@ -2940,7 +2957,7 @@ input[name="code"]:focus {
   /* Auth pages responsive */
   .auth-shell {
     min-height: auto;
-    padding: 14px 12px 18px;
+    padding: 26px 12px 18px;
     background-size: 28px 28px;
   }
   .auth-shell::before { width: 240px; height: 240px; }
