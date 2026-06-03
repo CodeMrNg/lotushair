@@ -14,7 +14,7 @@
   <link rel="icon" href="{% static 'core/img/logo.jpeg' %}">
   <link rel="apple-touch-icon" href="{% static 'core/img/pwa-icon-192.png' %}">
   <link rel="manifest" href="/manifest.json">
-  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=3.9">
+  <link rel="stylesheet" href="{% static 'core/styles.css' %}?v=4.0">
   <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
 </head>
 <body class="page-is-loading">
@@ -144,8 +144,11 @@
     </div>
   </div>
 
-  <footer class="app-footer">
-    <span>Contact : <a href="tel:+242055261728">+242 05 526 17 28 (Ngamakita Madzouka)</a></span>
+  <footer class="app-footer {% if not request.session.member_id and not request.user.is_authenticated %}public-footer{% endif %}">
+    <span class="footer-contact">
+      <span class="footer-label">Contact</span>
+      <a href="tel:+242055261728">+242 05 526 17 28 (Ngamakita Madzouka)</a>
+    </span>
     {% if request.session.member_id %}
       <a href="{% url 'terms' %}">Relire les conditions generales</a>
     {% endif %}

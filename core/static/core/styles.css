@@ -2234,6 +2234,46 @@ input[name="code"]:focus {
 .app-footer a:hover {
   color: var(--color-gold-metallic);
 }
+.public-footer {
+  width: min(520px, calc(100% - 32px));
+  justify-content: center;
+  margin: 18px auto 0;
+  padding: 11px 14px;
+  border: 1px solid rgba(197, 160, 89, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--color-text-muted);
+  box-shadow: 0 10px 34px rgba(62, 27, 37, 0.08);
+  backdrop-filter: blur(8px);
+}
+.footer-contact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  text-align: center;
+}
+.footer-label {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--color-gold-light);
+  color: var(--color-brand-plum);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.public-footer a {
+  color: var(--color-brand-plum);
+  font-weight: 800;
+}
+.public-footer a:hover {
+  color: var(--color-gold-hover);
+}
 
 /* Terms flow */
 .terms-page {
@@ -2920,6 +2960,21 @@ input[name="code"]:focus {
     margin-top: 24px;
     padding-top: 14px;
     font-size: 0.78rem;
+  }
+  .public-footer {
+    align-items: center;
+    width: min(420px, calc(100% - 32px));
+    margin-top: 14px;
+    padding: 10px 12px;
+    font-size: 0.74rem;
+  }
+  .public-footer .footer-contact {
+    gap: 7px;
+  }
+  .public-footer .footer-label {
+    min-height: 22px;
+    padding: 0 8px;
+    font-size: 0.62rem;
   }
   .pwa-install-banner {
     grid-template-columns: 1fr;
