@@ -1526,10 +1526,12 @@ p {
 
 /* Authentication Layouts */
 .auth-shell {
-  min-height: 100dvh;
+  min-height: auto;
   display: grid;
-  place-items: center;
+  place-items: start center;
   padding: 40px 16px;
+  padding-top: clamp(28px, 7vh, 72px);
+  padding-bottom: 28px;
   background-color: #F5EFE8;
   /* Animated diamond lattice pattern */
   background-image:
@@ -2897,16 +2899,17 @@ input[name="code"]:focus {
 
   /* Auth pages responsive */
   .auth-shell {
-    padding: 20px 12px;
+    min-height: auto;
+    padding: 14px 12px 18px;
     background-size: 28px 28px;
   }
   .auth-shell::before { width: 240px; height: 240px; }
   .auth-shell::after  { width: 280px; height: 280px; }
   .auth-panel {
-    padding: 28px 20px;
+    padding: 24px 20px;
     border-radius: 14px;
   }
-  .auth-logo { width: 72px; height: 72px; margin-bottom: 16px; }
+  .auth-logo { width: 64px; height: 64px; margin-bottom: 12px; }
 
   .quick-action { font-size: 0.78rem; }
   .btn { min-height: 40px; padding: 0 16px; font-size: 0.82rem; }
@@ -3081,8 +3084,8 @@ input[name="code"]:focus {
     width: fit-content;
   }
 
-  .auth-panel { padding: 22px 16px; }
-  .auth-logo { width: 60px; height: 60px; }
+  .auth-panel { padding: 20px 16px; }
+  .auth-logo { width: 56px; height: 56px; margin-bottom: 10px; }
   h1 { font-size: 1.8rem; }
   h2 { font-size: 1.1rem; }
 
