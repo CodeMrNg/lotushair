@@ -32,11 +32,9 @@
             <span>{{ member.full_name }}</span>
             <small>Groupe : {{ member.group.name }} | Rang : {{ member.rank }}</small>
           </div>
-          {% if member.is_online %}
-            <span class="badge presence-badge online">En ligne</span>
-          {% else %}
-            <span class="badge presence-badge offline">Hors ligne</span>
-          {% endif %}
+          <span class="badge presence-badge offline">
+            Derniere connexion : {% if member.last_login_at %}{{ member.last_login_at|date:"d/m/Y H:i" }}{% else %}Jamais{% endif %}
+          </span>
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
             <a class="btn primary" href="{% url 'edit_member' member.id %}">Modifier</a>
