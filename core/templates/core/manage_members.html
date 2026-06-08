@@ -33,7 +33,7 @@
             <small>Groupe : {{ member.group.name }} | Rang : {{ member.rank }}</small>
           </div>
           <span class="badge presence-badge offline">
-            Derniere connexion : {% if member.last_login_at %}{{ member.last_login_at|date:"d/m/Y H:i" }}{% else %}Jamais{% endif %}
+            Derniere connexion : {% if member.last_login_at %}{{ member.last_login_at|date:"d/m/Y - H:i" }}{% else %}Jamais{% endif %}
           </span>
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
