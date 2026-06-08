@@ -5,6 +5,7 @@
   <div class="section-head" style="align-items: center;">
     <h1 style="margin: 0;">Compta</h1>
     <div class="admin-page-actions">
+      <time>{% now "d F Y" %}</time>
       <button class="btn primary" type="button" data-admin-modal-open="#withdrawal-form-modal">Nouveau retrait</button>
       <a class="btn" href="{% url 'staff_dashboard' %}">Retour</a>
     </div>

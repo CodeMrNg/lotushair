@@ -39,6 +39,7 @@
     {% if query %}
       <a class="btn" href="{% url 'member_catalog' %}">Effacer</a>
     {% endif %}
+    <time>{% now "d F Y" %}</time>
   </form>
 
   <div class="catalog-grid">

@@ -466,7 +466,8 @@ img {
   font-size: 0.85rem;
   color: var(--color-text-main);
 }
-.dashboard-toolbar time {
+.dashboard-toolbar time,
+.admin-page-actions time {
   color: var(--color-brand-plum);
   font-size: 0.85rem;
   font-weight: 700;
@@ -2582,6 +2583,10 @@ input[name="code"]:focus {
     width: 100%;
     display: grid;
     grid-template-columns: 1fr;
+  }
+  .admin-page-actions time {
+    width: 100%;
+    text-align: center;
   }
   .admin-row-actions,
   .admin-row-meta {

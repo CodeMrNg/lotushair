@@ -21,6 +21,7 @@
     {% if query %}
       <a class="btn" href="{% url 'manage_payments' %}">Effacer</a>
     {% endif %}
+    <time>{% now "d F Y" %}</time>
   </form>
 
   <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 18px;">

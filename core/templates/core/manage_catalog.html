@@ -22,6 +22,7 @@
     {% if query %}
       <a class="btn" href="{% url 'manage_catalog' %}">Effacer</a>
     {% endif %}
+    <time>{% now "d F Y" %}</time>
   </form>
 
   <section class="panel admin-list-panel">

@@ -21,6 +21,7 @@
     {% if query %}
       <a class="btn" href="{% url 'manage_groups' %}">Effacer</a>
     {% endif %}
+    <time>{% now "d F Y" %}</time>
   </form>
 
   <section class="panel admin-list-panel">
