@@ -756,6 +756,61 @@ p {
 .dashboard-split {
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
 }
+.member-announcements-card {
+  margin-bottom: 22px;
+  overflow: hidden;
+  border-color: rgba(197, 160, 89, 0.34);
+  background: linear-gradient(180deg, #fff, #FBFAF8);
+}
+.member-announcements-card .section-head {
+  margin-bottom: 12px;
+}
+.member-announcements {
+  display: grid;
+  gap: 10px;
+}
+.member-announcement {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: #fff;
+}
+.member-announcement-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--color-gold-light);
+  color: var(--color-brand-plum);
+}
+.member-announcement-icon svg {
+  width: 20px;
+  height: 20px;
+}
+.member-announcement span {
+  display: block;
+  color: var(--color-gold-metallic);
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+.member-announcement h3 {
+  margin: 2px 0 5px;
+  color: var(--color-brand-plum);
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+.member-announcement p {
+  margin: 0;
+  color: var(--color-text-main);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
 
 .admin-manage-page .split {
   grid-template-columns: minmax(320px, 0.85fr) minmax(0, 1.35fr);
@@ -826,6 +881,222 @@ p {
   padding: 22px 0;
   color: var(--color-text-muted);
   text-align: center;
+}
+.announcement-targets {
+  display: block;
+  margin-top: 4px;
+}
+.announcement-composer {
+  display: grid;
+  gap: 16px;
+}
+.announcement-composer-head {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--color-brand-plum), #6F2C43);
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(62, 27, 37, 0.18);
+}
+.announcement-composer-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.announcement-composer-icon svg {
+  width: 22px;
+  height: 22px;
+}
+.announcement-composer-head strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 900;
+}
+.announcement-composer-head small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.announcement-composer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, 0.92fr);
+  gap: 16px;
+  align-items: start;
+}
+.announcement-compose-panel,
+.announcement-settings-panel {
+  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  box-shadow: 0 14px 34px rgba(34, 23, 28, 0.07);
+}
+.announcement-compose-panel {
+  display: grid;
+  gap: 14px;
+}
+.announcement-settings-panel {
+  display: grid;
+  gap: 14px;
+}
+.announcement-panel-head h3 {
+  margin: 0;
+  color: var(--color-brand-plum);
+  font-family: var(--font-heading);
+  font-size: 0.98rem;
+}
+.announcement-panel-head p {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+.announcement-field {
+  display: grid;
+  gap: 7px;
+}
+.announcement-field input,
+.announcement-field textarea {
+  border-radius: 14px;
+  background: #FBFAF8;
+}
+.announcement-field textarea {
+  min-height: 170px;
+}
+.announcement-publish-toggle {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(67, 120, 80, 0.18);
+  background: var(--color-success-bg);
+  color: var(--color-text-main);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.announcement-publish-toggle input {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  flex: 0 0 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-success);
+}
+.announcement-publish-toggle span {
+  display: grid;
+  gap: 2px;
+}
+.announcement-publish-toggle strong {
+  color: var(--color-brand-plum);
+  font-size: 0.9rem;
+}
+.announcement-publish-toggle small {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  line-height: 1.32;
+}
+.announcement-targets-panel {
+  display: grid;
+  gap: 12px;
+}
+.announcement-target-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: #FBFAF8;
+}
+.announcement-target-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+.announcement-target-title strong {
+  color: var(--color-brand-plum);
+  font-size: 0.86rem;
+}
+.announcement-target-title small {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: right;
+}
+.announcement-choice-list .announcement-checkboxes,
+.announcement-choice-list > div {
+  max-height: 176px;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+  padding-right: 2px;
+}
+.announcement-choice-list .announcement-checkboxes > div {
+  min-width: 0;
+}
+.announcement-choice-list .announcement-checkboxes label,
+.announcement-choice-list label {
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 7px 9px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid transparent;
+  color: var(--color-text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
+}
+.announcement-choice-list .announcement-checkboxes label {
+  flex-direction: row;
+}
+.announcement-choice-list .announcement-checkboxes label:has(input:checked) {
+  border-color: rgba(62, 27, 37, 0.18);
+  background: var(--color-gold-light);
+}
+.announcement-choice-list .announcement-checkboxes label input,
+.announcement-choice-list input {
+  width: 16px;
+  height: 16px;
+  min-height: 16px;
+  flex: 0 0 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--color-brand-plum);
+}
+.announcement-composer-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0;
+  padding: 12px 0 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 28%);
+}
+.announcement-composer-actions .btn {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 16px;
 }
 .status-success {
   background: var(--color-success-bg);
@@ -1744,7 +2015,7 @@ form p .helptext {
   padding: 0;
   accent-color: var(--color-brand-plum);
 }
-#id_visible_to_groups {
+#id_visible_to_groups:not(.announcement-checkboxes) {
   display: grid;
   gap: 8px;
   padding: 10px;
@@ -1752,10 +2023,10 @@ form p .helptext {
   border-radius: var(--radius-md);
   background: #FBFAF8;
 }
-#id_visible_to_groups > div {
+#id_visible_to_groups:not(.announcement-checkboxes) > div {
   min-width: 0;
 }
-#id_visible_to_groups label {
+#id_visible_to_groups:not(.announcement-checkboxes) label {
   min-height: 38px;
   display: flex;
   align-items: center;
@@ -1771,7 +2042,7 @@ form p .helptext {
   line-height: 1.25;
   text-transform: none;
 }
-#id_visible_to_groups input[type="checkbox"] {
+#id_visible_to_groups:not(.announcement-checkboxes) input[type="checkbox"] {
   width: 18px;
   height: 18px;
   min-height: 18px;
@@ -2047,6 +2318,30 @@ input[name="code"]:focus {
   transform: translateY(10px) scale(0.98);
   transition: transform 0.18s ease;
 }
+.announcement-modal-card {
+  width: min(760px, 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.announcement-modal-card .admin-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  float: none;
+}
+.announcement-modal-card h2 {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 22px 64px 16px 22px;
+  border-bottom: 1px solid var(--color-border);
+  background: #fff;
+}
+.announcement-modal-card form {
+  overflow-y: auto;
+  padding: 16px 20px 18px;
+}
 .admin-modal.is-open .admin-modal-card {
   transform: translateY(0) scale(1);
 }
@@ -2112,6 +2407,33 @@ input[name="code"]:focus {
   text-align: center;
   transform: translateY(10px) scale(0.98);
   transition: transform 0.18s ease;
+}
+.announcement-read-card {
+  width: min(520px, 100%);
+  justify-items: start;
+  text-align: left;
+}
+.announcement-read-card .message-modal-icon {
+  justify-self: center;
+}
+.announcement-modal-eyebrow {
+  color: var(--color-gold-metallic);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+.announcement-read-card h2 {
+  margin-bottom: 4px;
+}
+.announcement-read-card p {
+  margin: 0 0 18px;
+  color: var(--color-text-main);
+  line-height: 1.6;
+}
+.announcement-read-card form,
+.announcement-read-card .btn {
+  width: 100%;
 }
 .message-modal.is-open .message-modal-card {
   transform: translateY(0) scale(1);
@@ -2621,6 +2943,56 @@ input[name="code"]:focus {
   }
   .admin-row-actions form .btn {
     width: 100%;
+  }
+  .announcement-composer-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .announcement-choice-list .announcement-checkboxes,
+  .announcement-choice-list > div {
+    max-height: 132px;
+  }
+  .announcement-modal-card {
+    max-height: 92dvh;
+    border-radius: 20px 20px 0 0;
+  }
+  .announcement-modal-card h2 {
+    padding: 18px 58px 12px 16px;
+    font-size: 1.08rem;
+  }
+  .announcement-modal-card form {
+    padding: 12px 12px 14px;
+  }
+  .announcement-composer-head {
+    align-items: flex-start;
+    padding: 10px;
+    border-radius: 16px;
+  }
+  .announcement-composer-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+  .announcement-compose-panel,
+  .announcement-settings-panel {
+    padding: 11px;
+    border-radius: 16px;
+  }
+  .announcement-field textarea {
+    min-height: 118px;
+  }
+  .announcement-panel-head p,
+  .announcement-composer-head small,
+  .announcement-publish-toggle small {
+    font-size: 0.72rem;
+  }
+  .announcement-target-card {
+    padding: 9px;
+  }
+  .announcement-choice-list .announcement-checkboxes label,
+  .announcement-choice-list label {
+    min-height: 32px;
+    padding: 6px 8px;
   }
   .admin-modal {
     align-items: end;

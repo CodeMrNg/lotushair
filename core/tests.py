@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
+from .models import AccountingWithdrawal, Announcement, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 class LotusHairFlowTests(TestCase):
@@ -128,6 +128,33 @@ class LotusHairFlowTests(TestCase):
         self.assertContains(response, "Total : 1250 FCFA")
         self.assertNotContains(response, "10750 FCFA")
 
+    def test_group_detail_allows_editing_members_in_group(self):
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("group_detail", args=[self.group.id]))
+
+        self.assertContains(response, f'{reverse("edit_member", args=[self.member.id])}?from_group={self.group.id}')
+        self.assertContains(response, "Modifier")
+
+    def test_edit_member_from_group_returns_to_group_detail(self):
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.post(
+            f'{reverse("edit_member", args=[self.member.id])}?from_group={self.group.id}',
+            {
+                "full_name": "Amina Modifiee",
+                "group": self.group.id,
+                "rank": self.member.rank,
+                "status": self.member.status,
+                "joined_at": self.member.joined_at.strftime("%Y-%m-%d"),
+                "is_active": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("group_detail", args=[self.group.id]))
+        self.member.refresh_from_db()
+        self.assertEqual(self.member.full_name, "Amina Modifiee")
+
     def test_member_detail_displays_total_confirmed_payments(self):
         Payment.objects.create(member=self.member, amount=1250, status=Payment.Status.CONFIRMED)
         Payment.objects.create(member=self.member, amount=2500, status=Payment.Status.CONFIRMED)
@@ -238,6 +265,73 @@ class LotusHairFlowTests(TestCase):
         self.assertTrue(paid_days[0]["is_paid"])
         self.assertContains(response, "paid-day")
         self.assertContains(response, "Versement effectué")
+
+    def test_staff_can_create_announcement_from_announcements_tab(self):
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.post(
+            reverse("manage_announcements"),
+            {
+                "title": "Reunion importante",
+                "message": "Presence obligatoire samedi.",
+                "visible_to_groups": [self.group.id],
+                "is_active": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("manage_announcements"))
+        announcement = Announcement.objects.get(title="Reunion importante")
+        self.assertTrue(announcement.is_active)
+        self.assertEqual(list(announcement.visible_to_groups.all()), [self.group])
+
+    def test_member_dashboard_shows_only_targeted_active_announcements(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        other_group = RistourneGroup.objects.create(name="Autre groupe")
+        group_announcement = Announcement.objects.create(title="Annonce groupe", message="Visible groupe")
+        group_announcement.visible_to_groups.add(self.group)
+        member_announcement = Announcement.objects.create(title="Annonce membre", message="Visible membre")
+        member_announcement.visible_to_members.add(self.member)
+        other_announcement = Announcement.objects.create(title="Annonce autre", message="Invisible")
+        other_announcement.visible_to_groups.add(other_group)
+        Announcement.objects.create(title="Annonce masquee", message="Inactive", is_active=False)
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertContains(response, "Annonce groupe")
+        self.assertContains(response, "Annonce membre")
+        self.assertNotContains(response, "Annonce autre")
+        self.assertNotContains(response, "Annonce masquee")
+
+    def test_member_reads_announcement_modal_once(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        announcement = Announcement.objects.create(title="Nouvelle information", message="A lire avant samedi.")
+        announcement.visible_to_groups.add(self.group)
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertContains(response, "Nouvelle annonce")
+        self.assertContains(response, "Nouvelle information")
+        self.assertContains(response, "J'ai lu")
+
+        response = self.client.post(reverse("mark_announcement_read", args=[announcement.id]))
+
+        self.assertRedirects(response, reverse("member_dashboard"))
+        self.assertTrue(announcement.read_by.filter(id=self.member.id).exists())
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertNotContains(response, "Nouvelle annonce")
+        self.assertContains(response, "Nouvelle information")
 
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=self.group.cycle_days - 1)

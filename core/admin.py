@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import AccountingWithdrawal, Member, Notification, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
+from .models import AccountingWithdrawal, Announcement, Member, Notification, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage
 
 
 @admin.register(RistourneGroup)
@@ -29,6 +29,14 @@ class AccountingWithdrawalAdmin(admin.ModelAdmin):
     list_display = ("amount", "withdrawn_on", "group", "member")
     list_filter = ("withdrawn_on", "group", "member__group")
     search_fields = ("group__name", "member__full_name", "note")
+
+
+@admin.register(Announcement)
+class AnnouncementAdmin(admin.ModelAdmin):
+    list_display = ("title", "is_active", "created_at")
+    list_filter = ("is_active", "visible_to_groups")
+    search_fields = ("title", "message", "visible_to_members__full_name", "visible_to_groups__name")
+    filter_horizontal = ("visible_to_groups", "visible_to_members", "read_by")
 
 
 @admin.register(WigCatalog)

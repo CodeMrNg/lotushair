@@ -1,0 +1,96 @@
+{% extends "core/base.html" %}
+{% block content %}
+<section class="page admin-page admin-manage-page" style="padding-top: 10px;">
+  <div class="section-head" style="align-items: center;">
+    <h1 style="margin: 0;">Annonces</h1>
+    <div class="admin-page-actions">
+      <button class="btn primary" type="button" data-admin-modal-open="#announcement-form-modal">Nouvelle annonce</button>
+      <a class="btn" href="{% url 'staff_dashboard' %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Retour
+      </a>
+    </div>
+  </div>
+
+  <form method="get" class="dashboard-toolbar search-toolbar" style="margin-bottom: 18px;">
+    <label class="search-pill" style="width: min(520px, 100%);">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="search" name="q" value="{{ query }}" placeholder="Rechercher une annonce, un groupe ou un membre...">
+    </label>
+    <button class="btn primary" type="submit">Rechercher</button>
+    {% if query %}
+      <a class="btn" href="{% url 'manage_announcements' %}">Effacer</a>
+    {% endif %}
+    <time>{% now "d F Y" %}</time>
+  </form>
+
+  <section class="panel admin-list-panel">
+    <h2>Annonces publiees</h2>
+    <div class="list">
+      {% for announcement in announcements %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ announcement.title }}</span>
+            <small>{{ announcement.message|truncatechars:120 }}</small>
+            <small class="announcement-targets">
+              Groupes :
+              {% for group in announcement.visible_to_groups.all %}
+                {{ group.name }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                tous
+              {% endfor %}
+              | Membres :
+              {% for member in announcement.visible_to_members.all %}
+                {{ member.full_name }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                tous
+              {% endfor %}
+            </small>
+          </div>
+          <div class="admin-row-meta">
+            {% if announcement.is_active %}
+              <span class="badge status-success">Affichee</span>
+            {% else %}
+              <span class="badge status-warning">Masquee</span>
+            {% endif %}
+          </div>
+          <div class="admin-row-actions">
+            <a class="btn primary" href="{% url 'edit_announcement' announcement.id %}">Modifier</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucune annonce enregistree.</p>
+      {% endfor %}
+    </div>
+    {% include "core/partials/pagination.html" with page_obj=announcements page_param="page" query=query %}
+  </section>
+
+  <div class="admin-modal {% if form_open %}is-open{% endif %}" id="announcement-form-modal" role="dialog" aria-modal="true" aria-labelledby="announcement-form-title" data-admin-modal>
+    <div class="admin-modal-card announcement-modal-card">
+      <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+      <h2 id="announcement-form-title">Nouvelle annonce</h2>
+      <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% include "core/partials/announcement_form.html" with announcement_form=form submit_label="Enregistrer l'annonce" %}
+      </form>
+    </div>
+  </div>
+
+  {% if edit_open %}
+    <div class="admin-modal is-open" id="edit-announcement-modal" role="dialog" aria-modal="true" aria-labelledby="edit-announcement-title" data-admin-modal>
+      <div class="admin-modal-card announcement-modal-card">
+        <button class="admin-modal-close" type="button" aria-label="Fermer" data-admin-modal-close>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+        <h2 id="edit-announcement-title">Modifier l'annonce</h2>
+        <form method="post" action="{% url 'edit_announcement' edit_announcement.id %}" class="form-grid">
+          {% csrf_token %}
+          {% include "core/partials/announcement_form.html" with announcement_form=edit_form submit_label="Enregistrer" %}
+        </form>
+      </div>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

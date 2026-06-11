@@ -26,6 +26,45 @@
     </div>
   </div>
 
+  {% if unread_announcement %}
+    <div class="message-modal is-open announcement-read-modal" role="dialog" aria-modal="true" aria-labelledby="announcement-read-title">
+      <div class="message-modal-card announcement-read-card">
+        <div class="message-modal-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l7-5v12l-7-5H3z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>
+        </div>
+        <span class="announcement-modal-eyebrow">Nouvelle annonce</span>
+        <h2 id="announcement-read-title">{{ unread_announcement.title }}</h2>
+        <p>{{ unread_announcement.message|linebreaksbr }}</p>
+        <form method="post" action="{% url 'mark_announcement_read' unread_announcement.id %}">
+          {% csrf_token %}
+          <button class="btn primary" type="submit">J'ai lu</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if announcements %}
+    <section class="panel member-announcements-card" aria-label="Annonces importantes">
+      <div class="section-head">
+        <h2>Annonces importantes</h2>
+      </div>
+      <div class="member-announcements">
+      {% for announcement in announcements %}
+        <article class="member-announcement">
+          <div class="member-announcement-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l7-5v12l-7-5H3z"/><path d="M16 9a5 5 0 0 1 0 6"/></svg>
+          </div>
+          <div>
+            <span>Annonce</span>
+            <h3>{{ announcement.title }}</h3>
+            <p>{{ announcement.message|linebreaksbr }}</p>
+          </div>
+        </article>
+      {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+
   <div class="stats-grid">
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">

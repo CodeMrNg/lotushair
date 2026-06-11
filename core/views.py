@@ -12,8 +12,8 @@ from django.utils import timezone
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
 
-from .forms import AccountingWithdrawalForm, CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
-from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
+from .forms import AccountingWithdrawalForm, AnnouncementForm, CodeLoginForm, GroupForm, MemberForm, PaymentForm, WigForm, WigImageForm
+from .models import AccountingWithdrawal, Announcement, Member, Payment, RistourneGroup, WigCatalog, WigChoice, WigImage, generate_member_code
 
 
 @never_cache
@@ -132,6 +132,26 @@ def member_dashboard(request):
         group.starts_on + timezone.timedelta(days=payment_index * payment_frequency_days)
         for payment_index in range(payments_completed_count)
     }
+    announcements = (
+        Announcement.objects.filter(is_active=True)
+        .filter(
+            Q(visible_to_groups__isnull=True, visible_to_members__isnull=True)
+            | Q(visible_to_groups=group)
+            | Q(visible_to_members=member)
+        )
+        .distinct()[:5]
+    )
+    unread_announcement = (
+        Announcement.objects.filter(is_active=True)
+        .filter(
+            Q(visible_to_groups__isnull=True, visible_to_members__isnull=True)
+            | Q(visible_to_groups=group)
+            | Q(visible_to_members=member)
+        )
+        .exclude(read_by=member)
+        .distinct()
+        .first()
+    )
     next_beneficiary = group.next_beneficiary()
     delivery_dates = {}
     current_member_index = group_members.index(next_beneficiary) if next_beneficiary in group_members else 0
@@ -204,6 +224,8 @@ def member_dashboard(request):
             "payments_completed_count": payments_completed_count,
             "total_expected_payments": total_expected_payments,
             "remaining_total_payments": remaining_total_payments,
+            "announcements": announcements,
+            "unread_announcement": unread_announcement,
             "progress": progress,
             "cycle_progress_markers": cycle_progress_markers,
             "total_group_cycles": len(group_members),
@@ -243,6 +265,22 @@ def member_catalog(request):
             "query": query,
         },
     )
+
+
+@member_required
+@require_POST
+def mark_announcement_read(request, announcement_id):
+    member = request.member
+    announcement = get_object_or_404(
+        Announcement.objects.filter(is_active=True).filter(
+            Q(visible_to_groups__isnull=True, visible_to_members__isnull=True)
+            | Q(visible_to_groups=member.group)
+            | Q(visible_to_members=member)
+        ).distinct(),
+        id=announcement_id,
+    )
+    announcement.read_by.add(member)
+    return redirect("member_dashboard")
 
 
 @member_required
@@ -511,10 +549,14 @@ def member_detail_admin(request, member_id):
 @staff_required
 def edit_member(request, member_id):
     member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
+    from_group_id = request.GET.get("from_group")
+    return_group = member.group if str(member.group_id) == str(from_group_id) else None
     form = MemberForm(request.POST or None, instance=member)
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Membre modifie.")
+        if return_group:
+            return redirect("group_detail", group_id=return_group.id)
         return redirect("member_detail_admin", member_id=member.id)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
     total_member_payments = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
@@ -536,6 +578,7 @@ def edit_member(request, member_id):
             "selected_choice": selected_choice,
             "selected_choice_image": selected_choice_image,
             "edit_open": True,
+            "return_group": return_group,
         },
     )
 
@@ -703,6 +746,65 @@ def accounting(request):
             "cycles_page_param": "cycles_page",
             "withdrawals": withdrawals,
             "withdrawals_page_param": "withdrawals_page",
+        },
+    )
+
+
+@staff_required
+def manage_announcements(request):
+    query = request.GET.get("q", "").strip()
+    form = AnnouncementForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Annonce enregistree.")
+        return redirect("manage_announcements")
+    announcements_queryset = Announcement.objects.prefetch_related("visible_to_groups", "visible_to_members")
+    if query:
+        announcements_queryset = announcements_queryset.filter(
+            Q(title__icontains=query)
+            | Q(message__icontains=query)
+            | Q(visible_to_groups__name__icontains=query)
+            | Q(visible_to_members__full_name__icontains=query)
+        ).distinct()
+    announcements = paginate_queryset(request, announcements_queryset, per_page=10)
+    return render(
+        request,
+        "core/manage_announcements.html",
+        {
+            "form": form,
+            "announcements": announcements,
+            "form_open": request.method == "POST",
+            "query": query,
+        },
+    )
+
+
+@staff_required
+def edit_announcement(request, announcement_id):
+    announcement = get_object_or_404(
+        Announcement.objects.prefetch_related("visible_to_groups", "visible_to_members"),
+        id=announcement_id,
+    )
+    form = AnnouncementForm(request.POST or None, instance=announcement)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Annonce modifiee.")
+        return redirect("manage_announcements")
+    announcements = paginate_queryset(
+        request,
+        Announcement.objects.prefetch_related("visible_to_groups", "visible_to_members"),
+        per_page=10,
+    )
+    return render(
+        request,
+        "core/manage_announcements.html",
+        {
+            "form": AnnouncementForm(),
+            "announcements": announcements,
+            "edit_form": form,
+            "edit_announcement": announcement,
+            "edit_open": True,
+            "query": request.GET.get("q", "").strip(),
         },
     )
 

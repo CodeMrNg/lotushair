@@ -5,7 +5,11 @@
     <h1>{{ member.full_name }}</h1>
     <div class="admin-page-actions">
       <button class="btn primary" type="button" data-admin-modal-open="#edit-member-modal">Modifier</button>
-      <a class="btn" href="{% url 'manage_members' %}">Retour</a>
+      {% if return_group %}
+        <a class="btn" href="{% url 'group_detail' return_group.id %}">Retour au groupe</a>
+      {% else %}
+        <a class="btn" href="{% url 'manage_members' %}">Retour</a>
+      {% endif %}
     </div>
   </div>
 
@@ -79,7 +83,7 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
       <h2 id="edit-member-title">Modifier le membre</h2>
-      <form method="post" action="{% url 'edit_member' member.id %}" class="form-grid">
+      <form method="post" action="{% url 'edit_member' member.id %}{% if return_group %}?from_group={{ return_group.id }}{% endif %}" class="form-grid">
         {% csrf_token %}
         {{ form.as_p }}
         <button class="btn primary" type="submit">Enregistrer</button>

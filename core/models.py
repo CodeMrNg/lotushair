@@ -291,4 +291,40 @@ class Notification(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+
+class Announcement(models.Model):
+    title = models.CharField("titre", max_length=140)
+    message = models.TextField("message")
+    visible_to_groups = models.ManyToManyField(
+        RistourneGroup,
+        blank=True,
+        related_name="announcements",
+        verbose_name="groupes cibles",
+        help_text="Laissez vide pour ne pas limiter par groupe.",
+    )
+    visible_to_members = models.ManyToManyField(
+        Member,
+        blank=True,
+        related_name="announcements",
+        verbose_name="membres cibles",
+        help_text="Laissez vide pour ne pas limiter par membre.",
+    )
+    read_by = models.ManyToManyField(
+        Member,
+        blank=True,
+        related_name="read_announcements",
+        verbose_name="membres ayant lu",
+    )
+    is_active = models.BooleanField("afficher", default=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "annonce"
+        verbose_name_plural = "annonces"
+
+    def __str__(self):
+        return self.title
+
 # Create your models here.

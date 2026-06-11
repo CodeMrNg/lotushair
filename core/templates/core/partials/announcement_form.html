@@ -1,0 +1,75 @@
+<div class="announcement-composer">
+  <header class="announcement-composer-head">
+    <span class="announcement-composer-icon" aria-hidden="true">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l7-5v12l-7-5H3z"/><path d="M16 9a5 5 0 0 1 0 6"/><path d="M19 7a9 9 0 0 1 0 10"/></svg>
+    </span>
+    <div>
+      <strong>Annonce membre</strong>
+      <small>Publiez une information importante uniquement aux personnes concernees.</small>
+    </div>
+  </header>
+
+  <div class="announcement-composer-grid">
+    <section class="announcement-compose-panel">
+      <div class="announcement-panel-head">
+        <h3>Contenu de l'annonce</h3>
+        <p>Ce message apparaitra dans le tableau du membre et en modal tant qu'il n'a pas ete lu.</p>
+      </div>
+
+      <div class="announcement-field">
+        <label for="{{ announcement_form.title.id_for_label }}">Titre</label>
+        {{ announcement_form.title.errors }}
+        {{ announcement_form.title }}
+      </div>
+
+      <div class="announcement-field">
+        <label for="{{ announcement_form.message.id_for_label }}">Message</label>
+        {{ announcement_form.message.errors }}
+        {{ announcement_form.message }}
+      </div>
+    </section>
+
+    <aside class="announcement-settings-panel">
+      <label class="announcement-publish-toggle">
+        {{ announcement_form.is_active }}
+        <span>
+          <strong>Afficher maintenant</strong>
+          <small>Desactivez pour preparer une annonce sans la publier.</small>
+        </span>
+      </label>
+
+      <div class="announcement-targets-panel">
+        <div class="announcement-panel-head">
+          <h3>Ciblage</h3>
+          <p>Si aucune case n'est cochee, l'annonce est visible par tous les membres.</p>
+        </div>
+
+        <div class="announcement-target-card">
+          <div class="announcement-target-title">
+            <strong>Groupes</strong>
+            <small>Limiter par groupe</small>
+          </div>
+          {{ announcement_form.visible_to_groups.errors }}
+          <div class="announcement-choice-list">
+            {{ announcement_form.visible_to_groups }}
+          </div>
+        </div>
+
+        <div class="announcement-target-card">
+          <div class="announcement-target-title">
+            <strong>Membres</strong>
+            <small>Limiter a des personnes precises</small>
+          </div>
+          {{ announcement_form.visible_to_members.errors }}
+          <div class="announcement-choice-list">
+            {{ announcement_form.visible_to_members }}
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer class="announcement-composer-actions">
+    <button class="btn primary" type="submit">{{ submit_label }}</button>
+  </footer>
+</div>

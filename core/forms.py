@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import AccountingWithdrawal, Member, Payment, RistourneGroup, WigCatalog, WigImage
+from .models import AccountingWithdrawal, Announcement, Member, Payment, RistourneGroup, WigCatalog, WigImage
 
 
 class CodeLoginForm(forms.Form):
@@ -49,6 +49,18 @@ class AccountingWithdrawalForm(forms.ModelForm):
         model = AccountingWithdrawal
         fields = ["amount", "withdrawn_on", "group", "member", "note"]
         widgets = {"withdrawn_on": forms.DateInput(attrs={"type": "date"})}
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ["title", "message", "visible_to_groups", "visible_to_members", "is_active"]
+        widgets = {
+            "title": forms.TextInput(attrs={"placeholder": "Ex. Reunion importante, changement de date..."}),
+            "message": forms.Textarea(attrs={"rows": 4, "placeholder": "Ecrivez le message qui sera affiche aux membres concernes."}),
+            "visible_to_groups": forms.CheckboxSelectMultiple(attrs={"class": "announcement-checkboxes"}),
+            "visible_to_members": forms.CheckboxSelectMultiple(attrs={"class": "announcement-checkboxes"}),
+        }
 
 
 class WigForm(forms.ModelForm):
