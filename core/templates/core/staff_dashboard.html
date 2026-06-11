@@ -67,6 +67,14 @@
       <strong>{{ late_members|length }}</strong>
       <small>Membres à relancer</small>
     </article>
+    <article class="stat">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Avances</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+      </div>
+      <strong>{{ ahead_members|length }}</strong>
+      <small>Membres en avance</small>
+    </article>
   </div>
 
   <div class="split">
@@ -134,5 +142,16 @@
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: {% if late_members|length > 0 %}var(--color-danger){% else %}var(--color-success){% endif %};"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
       <p>Il y a <strong>{{ late_members|length }} membre(s)</strong> en retard de cotisation.</p>
     </div>
+    <div class="reminder">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+      <p>Il y a <strong>{{ ahead_members|length }} membre(s)</strong> en avance de paiement.</p>
+    </div>
+    {% for member in ahead_members %}
+      {% if member.no_next_cycle_with_advance %}
+        <div class="reminder">
+          <p><strong>{{ member.full_name }}</strong> : {{ member.ahead_note }}</p>
+        </div>
+      {% endif %}
+    {% endfor %}
   </div>
 {% endblock %}

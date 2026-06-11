@@ -102,8 +102,13 @@ def member_dashboard(request):
     member = request.member
     group = member.group
     group_members = list(group.ordered_members().prefetch_related("payments"))
-    payments = member.payments.all()[:8]
-    total_paid = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
+    contribution_amount = max(group.contribution_amount, 1)
+    payments = list(member.payments.all()[:8])
+    for payment in payments:
+        payment.units_count = max(payment.amount // contribution_amount, 1)
+    payments_completed_count = member.payments_done
+    total_expected_payments = max(group.expected_payments * max(len(group_members), 1), 1)
+    remaining_total_payments = max(total_expected_payments - payments_completed_count, 0)
     cycle_starts_on = group.current_cycle_start
     cycle_ends_on = group.current_cycle_end
     today = timezone.localdate()
@@ -121,6 +126,11 @@ def member_dashboard(request):
     cycle_dates = {
         cycle_starts_on + timezone.timedelta(days=offset)
         for offset in range(max(group.cycle_days, 0))
+    }
+    payment_frequency_days = max(group.payment_frequency_days, 1)
+    paid_dates = {
+        group.starts_on + timezone.timedelta(days=payment_index * payment_frequency_days)
+        for payment_index in range(payments_completed_count)
     }
     next_beneficiary = group.next_beneficiary()
     delivery_dates = {}
@@ -162,6 +172,12 @@ def member_dashboard(request):
         calendar_week = []
         for day in week:
             delivery_member = delivery_dates.get(day)
+            is_paid = day in paid_dates
+            day_title_parts = []
+            if delivery_member:
+                day_title_parts.append(f"Reception : {delivery_member.full_name}")
+            if is_paid:
+                day_title_parts.append("Versement deja effectue")
             calendar_week.append(
                 {
                     "date": day,
@@ -171,7 +187,9 @@ def member_dashboard(request):
                     "is_cycle": day in cycle_dates,
                     "is_delivery": bool(delivery_member),
                     "is_member_delivery": bool(delivery_member and delivery_member.id == member.id),
+                    "is_paid": is_paid,
                     "delivery_name": delivery_member.full_name if delivery_member else "",
+                    "title": " | ".join(day_title_parts),
                 }
             )
         calendar_weeks.append(calendar_week)
@@ -183,7 +201,9 @@ def member_dashboard(request):
             "group": group,
             "group_members": group_members,
             "payments": payments,
-            "total_paid": total_paid,
+            "payments_completed_count": payments_completed_count,
+            "total_expected_payments": total_expected_payments,
+            "remaining_total_payments": remaining_total_payments,
             "progress": progress,
             "cycle_progress_markers": cycle_progress_markers,
             "total_group_cycles": len(group_members),
@@ -284,13 +304,65 @@ def paginate_queryset(request, queryset, per_page=12, page_param="page"):
     return paginator.get_page(request.GET.get(page_param))
 
 
+def annotate_member_payment_position(member):
+    cycle_quota = max(member.group.expected_payments, 1)
+    total_cycles = max(member.group.members.filter(is_active=True).count(), 1)
+    total_expected_payments = cycle_quota * total_cycles
+    payments_done = member.payments_done
+    payments_due = min(member.payments_due, total_expected_payments)
+    current_cycle_number = min(max(member.group.current_cycle_number, 1), total_cycles)
+    current_cycle_required = min(current_cycle_number * cycle_quota, total_expected_payments)
+    future_payments = max(payments_done - current_cycle_required, 0)
+    extra_after_all_cycles = max(payments_done - total_expected_payments, 0)
+
+    member.missing_payments = max(payments_due - payments_done, 0)
+    member.late_amount = member.missing_payments * member.group.contribution_amount
+    member.ahead_payments = max(payments_done - payments_due, 0)
+    member.ahead_amount = member.ahead_payments * member.group.contribution_amount
+    member.extra_after_all_cycles = extra_after_all_cycles
+    member.extra_after_all_cycles_amount = extra_after_all_cycles * member.group.contribution_amount
+    member.no_next_cycle_with_advance = extra_after_all_cycles > 0
+
+    next_cycle_number = current_cycle_number + 1
+    if member.no_next_cycle_with_advance:
+        member.ahead_note = (
+            "Plus de prochain cycle : ce membre a encore "
+            f"{member.extra_after_all_cycles_amount} FCFA en avance."
+        )
+    elif future_payments > 0 and next_cycle_number <= total_cycles:
+        next_cycle_payments = min(future_payments, cycle_quota)
+        member.ahead_note = (
+            f"Avance completee dans le cycle {next_cycle_number} : "
+            f"{next_cycle_payments}/{cycle_quota} versement(s)."
+        )
+    else:
+        member.ahead_note = f"{member.ahead_payments} versement(s) en avance sur l'echeance actuelle."
+    return member
+
+
+def filtered_payment_positions(query):
+    late_members = []
+    ahead_members = []
+    normalized_query = query.lower()
+    members = Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments")
+    for member in members:
+        annotate_member_payment_position(member)
+        if query and normalized_query not in member.full_name.lower() and normalized_query not in member.group.name.lower():
+            continue
+        if member.missing_payments > 0:
+            late_members.append(member)
+        elif member.ahead_payments > 0:
+            ahead_members.append(member)
+    return late_members, ahead_members
+
+
 @staff_required
 def staff_dashboard(request):
     query = request.GET.get("q", "").strip()
     total_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     groups = RistourneGroup.objects.annotate(member_count=Count("members"))
     recent_payments = Payment.objects.select_related("member", "member__group")
-    late_members = [member for member in Member.objects.filter(is_active=True).select_related("group") if member.is_late]
+    late_members, ahead_members = filtered_payment_positions(query)
     if query:
         groups = groups.filter(Q(name__icontains=query) | Q(members__full_name__icontains=query)).distinct()
         recent_payments = recent_payments.filter(
@@ -299,16 +371,12 @@ def staff_dashboard(request):
             | Q(status__icontains=query)
             | Q(note__icontains=query)
         )
-        late_members = [
-            member
-            for member in late_members
-            if query.lower() in member.full_name.lower() or query.lower() in member.group.name.lower()
-        ]
     context = {
         "total_payments": total_payments,
         "groups_count": RistourneGroup.objects.filter(is_active=True).count(),
         "members_count": Member.objects.filter(is_active=True).count(),
         "late_members": late_members,
+        "ahead_members": ahead_members,
         "groups": groups[:8],
         "recent_payments": recent_payments[:8],
         "query": query,
@@ -509,15 +577,7 @@ def manage_payments(request):
             | Q(paid_on__icontains=query)
         )
     payments = paginate_queryset(request, payments_queryset, per_page=12)
-    late_members = []
-    for member in Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments"):
-        expected_due = member.payments_due
-        missing_payments = max(expected_due - member.payments_done, 0)
-        if missing_payments > 0:
-            member.missing_payments = missing_payments
-            member.late_amount = missing_payments * member.group.contribution_amount
-            if not query or query.lower() in member.full_name.lower() or query.lower() in member.group.name.lower():
-                late_members.append(member)
+    late_members, ahead_members = filtered_payment_positions(query)
     return render(
         request,
         "core/manage_payments.html",
@@ -525,6 +585,7 @@ def manage_payments(request):
             "form": form,
             "payments": payments,
             "late_members": late_members,
+            "ahead_members": ahead_members,
             "form_open": request.method == "POST",
             "query": query,
         },

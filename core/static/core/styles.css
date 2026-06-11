@@ -860,6 +860,10 @@ p {
   margin-bottom: 18px;
   border-top: 4px solid var(--color-danger);
 }
+.ahead-members-panel {
+  margin-bottom: 18px;
+  border-top: 4px solid var(--color-success);
+}
 .admin-subtitle {
   margin: 24px 0 12px;
   color: var(--color-brand-plum);
@@ -1240,6 +1244,19 @@ p {
   border-color: rgba(197, 160, 89, 0.22);
   color: var(--color-brand-plum);
 }
+.calendar-grid time.paid-day {
+  position: relative;
+}
+.calendar-grid time.paid-day::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+}
 .calendar-grid time.delivery-day {
   position: relative;
   border-color: var(--color-gold-metallic);
@@ -1301,6 +1318,9 @@ p {
 }
 .calendar-legend .delivery {
   background: var(--color-gold-metallic);
+}
+.calendar-legend .paid {
+  background: var(--color-success);
 }
 .calendar-legend .today {
   background: var(--color-brand-plum);

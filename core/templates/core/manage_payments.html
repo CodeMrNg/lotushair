@@ -48,6 +48,33 @@
     </div>
   </section>
 
+  <section class="panel admin-list-panel ahead-members-panel" style="margin-bottom: 18px;">
+    <h2>Membres en avance de paiement</h2>
+    <div class="list">
+      {% for member in ahead_members %}
+        <div class="row admin-row">
+          <div>
+            <span>{{ member.full_name }}</span>
+            <small>{{ member.group.name }} | Rang : {{ member.rank }} | {{ member.ahead_note }}</small>
+          </div>
+          <div class="admin-row-meta">
+            <em>{{ member.ahead_amount }} FCFA</em>
+            {% if member.no_next_cycle_with_advance %}
+              <span class="badge status-warning">Plus de cycle</span>
+            {% else %}
+              <span class="badge status-success">En avance</span>
+            {% endif %}
+          </div>
+          <div class="admin-row-actions">
+            <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun membre en avance de paiement.</p>
+      {% endfor %}
+    </div>
+  </section>
+
   {% include "core/partials/payment_table.html" %}
 
   <div class="admin-modal {% if form_open %}is-open{% endif %}" id="payment-form-modal" role="dialog" aria-modal="true" aria-labelledby="payment-form-title" data-admin-modal>

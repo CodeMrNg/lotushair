@@ -65,6 +65,38 @@ class LotusHairFlowTests(TestCase):
 
         self.assertContains(response, "Aucun membre en retard de cotisation.")
 
+    def test_manage_payments_displays_members_ahead_in_next_cycle(self):
+        second = Member.objects.create(full_name="Berenice Test", group=self.group, rank=2)
+        second.set_code("DEF456")
+        second.save()
+        Payment.objects.create(
+            member=self.member,
+            amount=self.group.contribution_amount * (self.group.expected_payments + 1),
+            status=Payment.Status.CONFIRMED,
+        )
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("manage_payments"))
+
+        self.assertContains(response, "Membres en avance de paiement")
+        self.assertContains(response, self.member.full_name)
+        self.assertContains(response, "Avance completee dans le cycle 2")
+        self.assertContains(response, "En avance")
+
+    def test_manage_payments_flags_ahead_money_when_no_next_cycle_exists(self):
+        Payment.objects.create(
+            member=self.member,
+            amount=self.group.contribution_amount * (self.group.expected_payments + 1),
+            status=Payment.Status.CONFIRMED,
+        )
+        self.client.login(username="admin", password="admin1234")
+
+        response = self.client.get(reverse("manage_payments"))
+
+        self.assertContains(response, "Plus de prochain cycle")
+        self.assertContains(response, "Plus de cycle")
+        self.assertContains(response, "a encore 1250 FCFA en avance")
+
     def test_member_is_not_late_before_or_on_group_start_date(self):
         self.group.starts_on = timezone.localdate() + timezone.timedelta(days=1)
         self.group.save()
@@ -161,6 +193,51 @@ class LotusHairFlowTests(TestCase):
         self.assertFalse(self.member.is_late)
         self.assertEqual(self.member.payments_ahead, 3)
         self.assertEqual(self.member.regularity_badge, "En avance")
+
+    def test_member_dashboard_shows_payment_counts_not_amounts(self):
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        Payment.objects.create(member=self.member, amount=self.group.contribution_amount * 2, status=Payment.Status.CONFIRMED)
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"))
+
+        self.assertEqual(response.context["payments_completed_count"], 2)
+        self.assertEqual(response.context["total_expected_payments"], self.group.expected_payments)
+        self.assertContains(response, "2 versement(s)")
+        self.assertNotContains(response, f"{self.group.contribution_amount * 2} FCFA")
+
+    def test_member_dashboard_marks_paid_calendar_days_including_advance_cycle(self):
+        self.group.cycle_days = 2
+        self.group.payment_frequency_days = 1
+        self.group.starts_on = timezone.localdate().replace(day=1)
+        self.group.save()
+        self.member.accepted_terms_at = timezone.now()
+        self.member.save()
+        second = Member.objects.create(full_name="Berenice Test", group=self.group, rank=2)
+        second.set_code("DEF456")
+        second.save()
+        Payment.objects.create(member=self.member, amount=self.group.contribution_amount * 3, status=Payment.Status.CONFIRMED)
+        advance_paid_date = self.group.starts_on + timezone.timedelta(days=2)
+
+        session = self.client.session
+        session["member_id"] = self.member.id
+        session.save()
+
+        response = self.client.get(reverse("member_dashboard"), {"calendar": self.group.starts_on.strftime("%Y-%m")})
+        paid_days = [
+            day
+            for week in response.context["calendar_weeks"]
+            for day in week
+            if day["date"] == advance_paid_date
+        ]
+
+        self.assertTrue(paid_days[0]["is_paid"])
+        self.assertContains(response, "paid-day")
+        self.assertContains(response, "Versement effectué")
 
     def test_member_cannot_choose_wig_after_receiving_in_current_cycle(self):
         self.group.starts_on = timezone.localdate() - timezone.timedelta(days=self.group.cycle_days - 1)

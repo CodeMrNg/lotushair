@@ -29,19 +29,19 @@
   <div class="stats-grid">
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-        <span>Versements</span>
+        <span>Versements effectues</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       </div>
-      <strong>{{ member.payments_done }}</strong>
-      <small>Jours payés</small>
+      <strong>{{ payments_completed_count }}/{{ total_expected_payments }}</strong>
+      <small>Total tout cycle confondu</small>
     </article>
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-        <span>Jours restants cycle</span>
+        <span>Versements restants</span>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       </div>
-      <strong>{{ member.days_remaining }}</strong>
-      <small>Fin du cycle : {{ cycle_ends_on|date:"d F Y" }}</small>
+      <strong>{{ remaining_total_payments }}</strong>
+      <small>Sur toute la ristourne</small>
     </article>
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
@@ -118,7 +118,7 @@
           <div class="row">
             <div>
               <span style="display: block; font-weight: 600; color: var(--color-text-main);">{{ payment.paid_on }}</span>
-              <small style="color: var(--color-text-muted);">{{ payment.amount }} FCFA</small>
+              <small style="color: var(--color-text-muted);">{{ payment.units_count }} versement(s)</small>
             </div>
             {% if payment.status == 'confirmed' %}
               <span class="badge" style="background: var(--color-success-bg); color: var(--color-success); border: none; font-size: 0.7rem; padding: 2px 10px; min-height: 24px;">Confirmé</span>
@@ -164,8 +164,8 @@
         {% for day in week %}
           <time
             datetime="{{ day.date|date:'Y-m-d' }}"
-            class="{% if not day.in_month %}muted{% endif %}{% if day.is_cycle %} cycle-day{% endif %}{% if day.is_delivery %} delivery-day{% endif %}{% if day.is_member_delivery %} member-delivery-day{% endif %}{% if day.is_today %} active{% endif %}"
-            {% if day.delivery_name %}title="Reception : {{ day.delivery_name }}"{% endif %}
+            class="{% if not day.in_month %}muted{% endif %}{% if day.is_cycle %} cycle-day{% endif %}{% if day.is_paid %} paid-day{% endif %}{% if day.is_delivery %} delivery-day{% endif %}{% if day.is_member_delivery %} member-delivery-day{% endif %}{% if day.is_today %} active{% endif %}"
+            {% if day.title %}title="{{ day.title }}"{% endif %}
           >
             {{ day.day }}
           </time>
@@ -174,6 +174,7 @@
     </div>
     <div class="calendar-legend" aria-label="Legende du calendrier">
       <span><i class="cycle"></i>Cycle</span>
+      <span><i class="paid"></i>Versement effectué</span>
       <span><i class="delivery"></i>Reception</span>
       <span><i class="today"></i>Aujourd'hui</span>
     </div>
@@ -183,11 +184,11 @@
     <h2>Rappels</h2>
     <div class="reminder">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-      <p>Versement périodique : <strong>{{ group.contribution_amount }} FCFA</strong>.</p>
+      <p>Versement periodique : <strong>1 versement tous les {{ group.payment_frequency_days }} jour(s)</strong>.</p>
     </div>
     <div class="reminder">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      <p>Jours restants dans ce cycle : <strong>{{ member.days_remaining }} jours</strong>.</p>
+      <p>Versements deja effectues : <strong>{{ payments_completed_count }}/{{ total_expected_payments }}</strong>.</p>
     </div>
     <div class="reminder">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
