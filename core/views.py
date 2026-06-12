@@ -2,7 +2,7 @@ import calendar
 from datetime import date
 
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
@@ -321,7 +321,7 @@ def staff_login(request):
         return redirect("staff_dashboard")
     form = AuthenticationForm(request, data=request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = authenticate(username=form.cleaned_data["username"], password=form.cleaned_data["password"])
+        user = form.get_user()
         if user and user.is_staff:
             login(request, user)
             return redirect("staff_dashboard")
