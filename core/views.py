@@ -23,6 +23,10 @@ def service_worker(request):
     return response
 
 
+def offline(request):
+    return render(request, "offline.html")
+
+
 def current_member(request):
     member_id = request.session.get("member_id")
     if not member_id:
