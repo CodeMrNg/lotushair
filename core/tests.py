@@ -19,7 +19,7 @@ class LotusHairFlowTests(TestCase):
         response = self.client.post(reverse("login"), {"code": "ABC123"})
         self.assertRedirects(response, reverse("terms"))
         self.member.refresh_from_db()
-        self.assertIsNone(self.member.last_login_at)
+        self.assertIsNotNone(self.member.last_login_at)
         self.assertIsNone(self.member.last_seen_at)
 
     def test_admin_member_list_displays_disabled_presence_badge(self):

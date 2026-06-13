@@ -114,6 +114,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.MD5PasswordHasher',
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
@@ -151,7 +155,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = 'staff_login'
 LOGIN_REDIRECT_URL = 'staff_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 SESSION_COOKIE_AGE = 60 * 60 * 6
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

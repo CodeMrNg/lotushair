@@ -2,7 +2,7 @@ import calendar
 from datetime import date
 
 from django.contrib import messages
-from django.contrib.auth import login, logout
+from django.contrib.auth import get_user_model, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.paginator import Paginator
@@ -70,6 +70,8 @@ def member_login(request):
         code = form.cleaned_data["code"]
         member = next((m for m in Member.objects.filter(is_active=True).select_related("group") if m.check_code(code)), None)
         if member:
+            member.last_login_at = timezone.now()
+            member.save(update_fields=["last_login_at"])
             request.session.flush()
             request.session["member_id"] = member.id
             return redirect("terms" if not member.accepted_terms_at else "member_dashboard")
@@ -310,9 +312,11 @@ def staff_login(request):
     if request.user.is_authenticated and request.user.is_staff:
         return redirect("staff_dashboard")
     form = AuthenticationForm(request, data=request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        user = form.get_user()
-        if user and user.is_staff:
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password", "")
+        user = get_user_model().objects.filter(username=username, is_staff=True).first()
+        if user and user.check_password(password):
             login(request, user)
             return redirect("staff_dashboard")
         messages.error(request, "Acces reserve aux administrateurs.")
