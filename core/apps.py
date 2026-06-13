@@ -1,4 +1,15 @@
 from django.apps import AppConfig
+from django.db.backends.signals import connection_created
+
+
+def configure_sqlite_connection(sender, connection, **kwargs):
+    if connection.vendor != "sqlite":
+        return
+    with connection.cursor() as cursor:
+        cursor.execute("PRAGMA busy_timeout = 5000")
+        cursor.execute("PRAGMA journal_mode = WAL")
+        cursor.execute("PRAGMA synchronous = NORMAL")
+        cursor.execute("PRAGMA temp_store = MEMORY")
 
 
 class CoreConfig(AppConfig):
@@ -10,3 +21,4 @@ class CoreConfig(AppConfig):
         from django.contrib.auth.signals import user_logged_in
 
         user_logged_in.disconnect(update_last_login)
+        connection_created.connect(configure_sqlite_connection)
