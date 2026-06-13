@@ -20,9 +20,6 @@
       <div class="detail-item"><small>Statut</small><strong>{{ member.status }}</strong></div>
       <div class="detail-item"><small>Inscription</small><strong>{{ member.joined_at }}</strong></div>
       <div class="detail-item"><small>Conditions</small><strong>{% if member.accepted_terms_at %}Acceptees{% else %}Non acceptees{% endif %}</strong></div>
-      <div class="detail-item"><small>Presence</small><strong>{% if member.is_online %}En ligne{% else %}Hors ligne{% endif %}</strong></div>
-      <div class="detail-item"><small>Derniere connexion</small><strong>{% if member.last_login_at %}{{ member.last_login_at }}{% else %}Jamais{% endif %}</strong></div>
-      <div class="detail-item"><small>Derniere activite</small><strong>{% if member.last_seen_at %}{{ member.last_seen_at }}{% else %}Aucune{% endif %}</strong></div>
       <div class="detail-item"><small>Versements</small><strong>{{ member.payments_done }}/{{ member.group.expected_payments }}</strong></div>
       <div class="detail-item"><small>Total versements</small><strong>{{ total_member_payments }} FCFA</strong></div>
       <div class="detail-item"><small>Choix</small><strong>{% if selected_choice %}{{ selected_choice.wig.name }}{% else %}Aucun{% endif %}</strong></div>

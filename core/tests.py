@@ -19,17 +19,15 @@ class LotusHairFlowTests(TestCase):
         response = self.client.post(reverse("login"), {"code": "ABC123"})
         self.assertRedirects(response, reverse("terms"))
         self.member.refresh_from_db()
-        self.assertIsNotNone(self.member.last_login_at)
-        self.assertTrue(self.member.is_online)
+        self.assertIsNone(self.member.last_login_at)
+        self.assertIsNone(self.member.last_seen_at)
 
-    def test_admin_member_list_displays_presence_badge(self):
-        self.member.last_seen_at = timezone.now()
-        self.member.save(update_fields=["last_seen_at"])
+    def test_admin_member_list_displays_disabled_presence_badge(self):
         self.client.login(username="admin", password="admin1234")
 
         response = self.client.get(reverse("manage_members"))
 
-        self.assertContains(response, "En ligne")
+        self.assertContains(response, "Suivi de presence desactive")
 
     def test_member_without_terms_cannot_access_private_pages(self):
         session = self.client.session
