@@ -7,7 +7,6 @@ def configure_sqlite_connection(sender, connection, **kwargs):
         return
     with connection.cursor() as cursor:
         cursor.execute("PRAGMA busy_timeout = 5000")
-        cursor.execute("PRAGMA journal_mode = WAL")
         cursor.execute("PRAGMA synchronous = NORMAL")
         cursor.execute("PRAGMA temp_store = MEMORY")
 
