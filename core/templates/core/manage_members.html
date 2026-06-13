@@ -31,11 +31,13 @@
         <div class="row admin-row">
           <div>
             <span>{{ member.full_name }}</span>
-            <small>Groupe : {{ member.group.name }} | Rang : {{ member.rank }}</small>
+            <small>Groupe : {{ member.group.name }} | Rang : {{ member.rank }} | Inscrit le {{ member.joined_at|date:"d F Y" }}</small>
           </div>
-          <span class="badge presence-badge offline">
-            Suivi de presence desactive
-          </span>
+          {% if member.last_login_at %}
+            <span class="badge">Derniere connexion : {{ member.last_login_at|date:"d F Y H:i" }}</span>
+          {% else %}
+            <span class="badge">Jamais connecte</span>
+          {% endif %}
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
             <a class="btn primary" href="{% url 'edit_member' member.id %}">Modifier</a>

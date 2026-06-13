@@ -22,12 +22,14 @@ class LotusHairFlowTests(TestCase):
         self.assertIsNotNone(self.member.last_login_at)
         self.assertIsNone(self.member.last_seen_at)
 
-    def test_admin_member_list_displays_disabled_presence_badge(self):
+    def test_admin_member_list_displays_login_status(self):
         self.client.login(username="admin", password="admin1234")
 
         response = self.client.get(reverse("manage_members"))
 
-        self.assertContains(response, "Suivi de presence desactive")
+        self.assertContains(response, "Jamais connecte")
+        self.assertContains(response, "Inscrit le")
+        self.assertNotContains(response, "Suivi de presence desactive")
 
     def test_member_without_terms_cannot_access_private_pages(self):
         session = self.client.session
