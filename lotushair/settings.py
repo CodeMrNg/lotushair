@@ -40,7 +40,7 @@ ALLOWED_HOSTS = os.environ.get(
 # Application definition
 
 INSTALLED_APPS = [
-    'core',
+    'core.apps.CoreConfig',
     'pwa',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -151,6 +151,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = 'staff_login'
 LOGIN_REDIRECT_URL = 'staff_dashboard'
 LOGOUT_REDIRECT_URL = 'login'
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_COOKIE_AGE = 60 * 60 * 6
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 

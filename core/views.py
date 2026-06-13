@@ -41,8 +41,10 @@ def member_required(view_func):
             return redirect("login")
         if not member.accepted_terms_at and request.resolver_match.url_name != "terms":
             return redirect("terms")
-        member.last_seen_at = timezone.now()
-        member.save(update_fields=["last_seen_at"])
+        now = timezone.now()
+        if not member.last_seen_at or member.last_seen_at < now - timezone.timedelta(minutes=2):
+            member.last_seen_at = now
+            member.save(update_fields=["last_seen_at"])
         request.member = member
         return view_func(request, *args, **kwargs)
 
