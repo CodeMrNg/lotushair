@@ -105,6 +105,7 @@ def member_dashboard(request):
     payments_completed_count = member.payments_done
     total_expected_payments = max(group.expected_payments * max(len(group_members), 1), 1)
     remaining_total_payments = max(total_expected_payments - payments_completed_count, 0)
+    annotate_member_payment_position(member)
     cycle_starts_on = group.current_cycle_start
     cycle_ends_on = group.current_cycle_end
     today = timezone.localdate()
@@ -377,19 +378,22 @@ def annotate_member_payment_position(member):
 
 
 def filtered_payment_positions(query):
-    late_members = []
-    ahead_members = []
+    members = filtered_member_payment_positions(query)
+    late_members = [member for member in members if member.missing_payments > 0]
+    ahead_members = [member for member in members if member.missing_payments == 0 and member.ahead_payments > 0]
+    return late_members, ahead_members
+
+
+def filtered_member_payment_positions(query):
+    payment_members = []
     normalized_query = query.lower()
     members = Member.objects.filter(is_active=True).select_related("group").prefetch_related("payments")
     for member in members:
         annotate_member_payment_position(member)
         if query and normalized_query not in member.full_name.lower() and normalized_query not in member.group.name.lower():
             continue
-        if member.missing_payments > 0:
-            late_members.append(member)
-        elif member.ahead_payments > 0:
-            ahead_members.append(member)
-    return late_members, ahead_members
+        payment_members.append(member)
+    return payment_members
 
 
 @staff_required
@@ -398,7 +402,9 @@ def staff_dashboard(request):
     total_payments = Payment.objects.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     groups = RistourneGroup.objects.annotate(member_count=Count("members"))
     recent_payments = Payment.objects.select_related("member", "member__group")
-    late_members, ahead_members = filtered_payment_positions(query)
+    payment_members = filtered_member_payment_positions(query)
+    late_members = [member for member in payment_members if member.missing_payments > 0]
+    ahead_members = [member for member in payment_members if member.missing_payments == 0 and member.ahead_payments > 0]
     if query:
         groups = groups.filter(Q(name__icontains=query) | Q(members__full_name__icontains=query)).distinct()
         recent_payments = recent_payments.filter(
@@ -413,6 +419,7 @@ def staff_dashboard(request):
         "members_count": Member.objects.filter(is_active=True).count(),
         "late_members": late_members,
         "ahead_members": ahead_members,
+        "payment_members": payment_members,
         "groups": groups[:8],
         "recent_payments": recent_payments[:8],
         "query": query,

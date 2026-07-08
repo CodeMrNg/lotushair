@@ -82,6 +82,28 @@
       <strong>{{ remaining_total_payments }}</strong>
       <small>Sur toute la ristourne</small>
     </article>
+    <article class="stat {% if member.missing_payments > 0 %}danger{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Situation cotisation</span>
+        {% if member.missing_payments > 0 %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% elif member.ahead_payments > 0 %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+        {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg>
+        {% endif %}
+      </div>
+      {% if member.missing_payments > 0 %}
+        <strong>{{ member.late_amount }} FCFA</strong>
+        <small>{{ member.missing_payments }} versement(s) en retard</small>
+      {% elif member.ahead_payments > 0 %}
+        <strong>{{ member.ahead_amount }} FCFA</strong>
+        <small>{{ member.ahead_payments }} versement(s) en avance</small>
+      {% else %}
+        <strong>0 FCFA</strong>
+        <small>Aucun retard ni avance</small>
+      {% endif %}
+    </article>
     <article class="stat">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
         <span>Jours restant ristourne</span>
@@ -228,6 +250,18 @@
     <div class="reminder">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       <p>Versements deja effectues : <strong>{{ payments_completed_count }}/{{ total_expected_payments }}</strong>.</p>
+    </div>
+    <div class="reminder">
+      {% if member.missing_payments > 0 %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Retard : <strong>{{ member.missing_payments }} versement(s), {{ member.late_amount }} FCFA</strong>.</p>
+      {% elif member.ahead_payments > 0 %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+        <p>Avance : <strong>{{ member.ahead_payments }} versement(s), {{ member.ahead_amount }} FCFA</strong>.</p>
+      {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg>
+        <p>Situation : <strong>a jour</strong>.</p>
+      {% endif %}
     </div>
     <div class="reminder">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
