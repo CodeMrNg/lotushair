@@ -22,6 +22,46 @@
       <div class="detail-item"><small>Conditions</small><strong>{% if member.accepted_terms_at %}Acceptees{% else %}Non acceptees{% endif %}</strong></div>
       <div class="detail-item"><small>Versements</small><strong>{{ member.payments_done }}/{{ member.group.expected_payments }}</strong></div>
       <div class="detail-item"><small>Total versements</small><strong>{{ total_member_payments }} FCFA</strong></div>
+      <div class="detail-item">
+        <small>Retard ristourne</small>
+        <strong>
+          {% if member.missing_payments > 0 %}
+            {{ member.missing_payments }} versement(s) | {{ member.late_amount }} FCFA
+          {% else %}
+            0 FCFA
+          {% endif %}
+        </strong>
+      </div>
+      <div class="detail-item">
+        <small>Avance ristourne</small>
+        <strong>
+          {% if member.ahead_payments > 0 %}
+            {{ member.ahead_payments }} versement(s) | {{ member.ahead_amount }} FCFA
+          {% else %}
+            0 FCFA
+          {% endif %}
+        </strong>
+      </div>
+      <div class="detail-item">
+        <small>Retard cycle {{ member.current_cycle_number }}</small>
+        <strong>
+          {% if member.current_cycle_missing_payments > 0 %}
+            {{ member.current_cycle_missing_payments }} versement(s) | {{ member.current_cycle_late_amount }} FCFA
+          {% else %}
+            0 FCFA
+          {% endif %}
+        </strong>
+      </div>
+      <div class="detail-item">
+        <small>Avance cycle {{ member.current_cycle_number }}</small>
+        <strong>
+          {% if member.current_cycle_ahead_payments > 0 %}
+            {{ member.current_cycle_ahead_payments }} versement(s) | {{ member.current_cycle_ahead_amount }} FCFA
+          {% else %}
+            0 FCFA
+          {% endif %}
+        </strong>
+      </div>
       <div class="detail-item"><small>Choix</small><strong>{% if selected_choice %}{{ selected_choice.wig.name }}{% else %}Aucun{% endif %}</strong></div>
       <div class="detail-item"><small>Couleur</small><strong>{% if selected_choice.color %}{{ selected_choice.color }}{% else %}Aucune{% endif %}</strong></div>
       <div class="detail-item"><small>Taille</small><strong>{% if selected_choice.size %}{{ selected_choice.size }}{% else %}Aucune{% endif %}</strong></div>

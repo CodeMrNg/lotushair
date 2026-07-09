@@ -389,7 +389,7 @@ def annotate_member_payment_position(member):
 
 def filtered_payment_positions(query):
     members = filtered_member_payment_positions(query)
-    late_members = [member for member in members if member.missing_payments > 0]
+    late_members = [member for member in members if member.current_cycle_missing_payments > 0]
     ahead_members = [member for member in members if member.missing_payments == 0 and member.ahead_payments > 0]
     return late_members, ahead_members
 
@@ -538,6 +538,7 @@ def manage_members(request):
 @staff_required
 def member_detail_admin(request, member_id):
     member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
+    annotate_member_payment_position(member)
     payments = paginate_queryset(request, member.payments.all(), per_page=10, page_param="payments_page")
     total_member_payments = member.payments.filter(status=Payment.Status.CONFIRMED).aggregate(total=Sum("amount"))["total"] or 0
     selected_choice = member.selected_wig_choice
@@ -564,6 +565,7 @@ def member_detail_admin(request, member_id):
 @staff_required
 def edit_member(request, member_id):
     member = get_object_or_404(Member.objects.select_related("group"), id=member_id)
+    annotate_member_payment_position(member)
     from_group_id = request.GET.get("from_group")
     return_group = member.group if str(member.group_id) == str(from_group_id) else None
     form = MemberForm(request.POST or None, instance=member)

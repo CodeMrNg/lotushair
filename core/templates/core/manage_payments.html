@@ -25,17 +25,17 @@
   </form>
 
   <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 18px;">
-    <h2>Membres en retard de cotisation</h2>
+    <h2>Membres en retard sur le cycle en cours</h2>
     <div class="list">
       {% for member in late_members %}
         <div class="row admin-row">
           <div>
             <span>{{ member.full_name }}</span>
-            <small>{{ member.group.name }} | Rang : {{ member.rank }} | {{ member.missing_payments }} versement(s) manquant(s)</small>
+            <small>{{ member.group.name }} | Rang : {{ member.rank }} | Cycle {{ member.current_cycle_number }} | {{ member.current_cycle_missing_payments }} versement(s) manquant(s)</small>
           </div>
           <div class="admin-row-meta">
-            <em>{{ member.late_amount }} FCFA</em>
-            <span class="badge status-danger">En retard</span>
+            <em>{{ member.current_cycle_late_amount }} FCFA</em>
+            <span class="badge status-danger">Retard cycle</span>
           </div>
           <div class="admin-row-actions">
             <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
@@ -43,34 +43,7 @@
           </div>
         </div>
       {% empty %}
-        <p class="empty-state">Aucun membre en retard de cotisation.</p>
-      {% endfor %}
-    </div>
-  </section>
-
-  <section class="panel admin-list-panel ahead-members-panel" style="margin-bottom: 18px;">
-    <h2>Membres en avance de paiement</h2>
-    <div class="list">
-      {% for member in ahead_members %}
-        <div class="row admin-row">
-          <div>
-            <span>{{ member.full_name }}</span>
-            <small>{{ member.group.name }} | Rang : {{ member.rank }} | {{ member.ahead_note }}</small>
-          </div>
-          <div class="admin-row-meta">
-            <em>{{ member.ahead_amount }} FCFA</em>
-            {% if member.no_next_cycle_with_advance %}
-              <span class="badge status-warning">Plus de cycle</span>
-            {% else %}
-              <span class="badge status-success">En avance</span>
-            {% endif %}
-          </div>
-          <div class="admin-row-actions">
-            <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
-          </div>
-        </div>
-      {% empty %}
-        <p class="empty-state">Aucun membre en avance de paiement.</p>
+        <p class="empty-state">Aucun membre en retard sur le cycle en cours.</p>
       {% endfor %}
     </div>
   </section>
