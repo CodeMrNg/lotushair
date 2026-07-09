@@ -84,7 +84,7 @@
     </article>
     <article class="stat {% if member.missing_payments > 0 %}danger{% endif %}">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
-        <span>Situation cotisation</span>
+        <span>Ristourne entiere</span>
         {% if member.missing_payments > 0 %}
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {% elif member.ahead_payments > 0 %}
@@ -102,6 +102,28 @@
       {% else %}
         <strong>0 FCFA</strong>
         <small>Aucun retard ni avance</small>
+      {% endif %}
+    </article>
+    <article class="stat {% if member.current_cycle_missing_payments > 0 %}danger{% endif %}">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+        <span>Cycle en cours</span>
+        {% if member.current_cycle_missing_payments > 0 %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        {% elif member.current_cycle_ahead_payments > 0 %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+        {% else %}
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-gold-metallic)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg>
+        {% endif %}
+      </div>
+      {% if member.current_cycle_missing_payments > 0 %}
+        <strong>{{ member.current_cycle_late_amount }} FCFA</strong>
+        <small>{{ member.current_cycle_missing_payments }} versement(s) en retard</small>
+      {% elif member.current_cycle_ahead_payments > 0 %}
+        <strong>{{ member.current_cycle_ahead_amount }} FCFA</strong>
+        <small>{{ member.current_cycle_ahead_payments }} versement(s) en avance</small>
+      {% else %}
+        <strong>0 FCFA</strong>
+        <small>Cycle {{ member.current_cycle_number }} a jour</small>
       {% endif %}
     </article>
     <article class="stat">
@@ -254,13 +276,25 @@
     <div class="reminder">
       {% if member.missing_payments > 0 %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <p>Retard : <strong>{{ member.missing_payments }} versement(s), {{ member.late_amount }} FCFA</strong>.</p>
+        <p>Ristourne entiere : <strong>{{ member.missing_payments }} versement(s), {{ member.late_amount }} FCFA en retard</strong>.</p>
       {% elif member.ahead_payments > 0 %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
-        <p>Avance : <strong>{{ member.ahead_payments }} versement(s), {{ member.ahead_amount }} FCFA</strong>.</p>
+        <p>Ristourne entiere : <strong>{{ member.ahead_payments }} versement(s), {{ member.ahead_amount }} FCFA en avance</strong>.</p>
       {% else %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg>
-        <p>Situation : <strong>a jour</strong>.</p>
+        <p>Ristourne entiere : <strong>a jour</strong>.</p>
+      {% endif %}
+    </div>
+    <div class="reminder">
+      {% if member.current_cycle_missing_payments > 0 %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Cycle en cours : <strong>{{ member.current_cycle_missing_payments }} versement(s), {{ member.current_cycle_late_amount }} FCFA en retard</strong>.</p>
+      {% elif member.current_cycle_ahead_payments > 0 %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+        <p>Cycle en cours : <strong>{{ member.current_cycle_ahead_payments }} versement(s), {{ member.current_cycle_ahead_amount }} FCFA en avance</strong>.</p>
+      {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7 9 18l-5-5"/></svg>
+        <p>Cycle en cours : <strong>a jour</strong>.</p>
       {% endif %}
     </div>
     <div class="reminder">

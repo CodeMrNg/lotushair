@@ -77,6 +77,48 @@
     </article>
   </div>
 
+  <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 24px;">
+    <div class="section-head">
+      <h2>Situation des cotisations</h2>
+      <a class="link-btn" href="{% url 'manage_payments' %}">Gerer les paiements</a>
+    </div>
+    <div class="list">
+      {% for member in payment_members %}
+        <div class="row">
+          <div>
+            <span style="display: block; font-weight: 600;">{{ member.full_name }}</span>
+            <small style="color: var(--color-text-muted);">{{ member.group.name }} | Rang : {{ member.rank }}</small>
+          </div>
+          <div class="admin-row-meta">
+            {% if member.missing_payments > 0 %}
+              <em>Ristourne : {{ member.missing_payments }} versement(s), {{ member.late_amount }} FCFA</em>
+              <span class="badge status-danger">Retard</span>
+            {% elif member.ahead_payments > 0 %}
+              <em>Ristourne : {{ member.ahead_payments }} versement(s), {{ member.ahead_amount }} FCFA</em>
+              <span class="badge status-success">Avance</span>
+            {% else %}
+              <em>Ristourne : 0 versement, 0 FCFA</em>
+              <span class="badge status-success">A jour</span>
+            {% endif %}
+            {% if member.current_cycle_missing_payments > 0 %}
+              <em>Cycle : {{ member.current_cycle_missing_payments }} versement(s), {{ member.current_cycle_late_amount }} FCFA</em>
+              <span class="badge status-danger">Retard cycle</span>
+            {% elif member.current_cycle_ahead_payments > 0 %}
+              <em>Cycle : {{ member.current_cycle_ahead_payments }} versement(s), {{ member.current_cycle_ahead_amount }} FCFA</em>
+              <span class="badge status-success">Avance cycle</span>
+            {% else %}
+              <em>Cycle : 0 versement, 0 FCFA</em>
+              <span class="badge status-success">Cycle a jour</span>
+            {% endif %}
+            <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="empty-state">Aucun membre trouve.</p>
+      {% endfor %}
+    </div>
+  </section>
+
   <div class="split">
     <section class="panel">
       <div class="section-head">

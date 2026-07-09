@@ -348,7 +348,10 @@ def annotate_member_payment_position(member):
     payments_done = member.payments_done
     payments_due = min(member.payments_due, total_expected_payments)
     current_cycle_number = min(max(member.group.current_cycle_number, 1), total_cycles)
+    previous_cycles_required = min(max(current_cycle_number - 1, 0) * cycle_quota, total_expected_payments)
     current_cycle_required = min(current_cycle_number * cycle_quota, total_expected_payments)
+    current_cycle_due = min(max(payments_due - previous_cycles_required, 0), cycle_quota)
+    current_cycle_done = min(max(payments_done - previous_cycles_required, 0), cycle_quota)
     future_payments = max(payments_done - current_cycle_required, 0)
     extra_after_all_cycles = max(payments_done - total_expected_payments, 0)
 
@@ -356,6 +359,13 @@ def annotate_member_payment_position(member):
     member.late_amount = member.missing_payments * member.group.contribution_amount
     member.ahead_payments = max(payments_done - payments_due, 0)
     member.ahead_amount = member.ahead_payments * member.group.contribution_amount
+    member.current_cycle_number = current_cycle_number
+    member.current_cycle_due_payments = current_cycle_due
+    member.current_cycle_done_payments = current_cycle_done
+    member.current_cycle_missing_payments = max(current_cycle_due - current_cycle_done, 0)
+    member.current_cycle_late_amount = member.current_cycle_missing_payments * member.group.contribution_amount
+    member.current_cycle_ahead_payments = max(current_cycle_done - current_cycle_due, 0)
+    member.current_cycle_ahead_amount = member.current_cycle_ahead_payments * member.group.contribution_amount
     member.extra_after_all_cycles = extra_after_all_cycles
     member.extra_after_all_cycles_amount = extra_after_all_cycles * member.group.contribution_amount
     member.no_next_cycle_with_advance = extra_after_all_cycles > 0
