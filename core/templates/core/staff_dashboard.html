@@ -77,35 +77,6 @@
     </article>
   </div>
 
-  <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 24px;">
-    <div class="section-head">
-      <h2>Retard de chaque membre</h2>
-      <a class="link-btn" href="{% url 'manage_payments' %}">Gerer les paiements</a>
-    </div>
-    <div class="list">
-      {% for member in payment_members %}
-        <div class="row">
-          <div>
-            <span style="display: block; font-weight: 600;">{{ member.full_name }}</span>
-            <small style="color: var(--color-text-muted);">{{ member.group.name }} | Rang : {{ member.rank }}</small>
-          </div>
-          <div class="admin-row-meta">
-            {% if member.missing_payments > 0 %}
-              <em>{{ member.missing_payments }} versement(s) | {{ member.late_amount }} FCFA</em>
-              <span class="badge status-danger">En retard</span>
-            {% else %}
-              <em>0 versement | 0 FCFA</em>
-              <span class="badge status-success">A jour</span>
-            {% endif %}
-            <a class="btn" href="{% url 'member_detail_admin' member.id %}">Details</a>
-          </div>
-        </div>
-      {% empty %}
-        <p class="empty-state">Aucun membre trouve.</p>
-      {% endfor %}
-    </div>
-  </section>
-
   <div class="split">
     <section class="panel">
       <div class="section-head">
