@@ -43,10 +43,13 @@
         </strong>
       </div>
       <div class="detail-item">
-        <small>Retard cycle {{ member.current_cycle_number }}</small>
+        <small>Retard cumule cycle {{ member.current_cycle_number }}</small>
         <strong>
           {% if member.current_cycle_missing_payments > 0 %}
             {{ member.current_cycle_missing_payments }} versement(s) | {{ member.current_cycle_late_amount }} FCFA
+            {% if member.previous_cycles_missing_payments > 0 %}
+              | dont {{ member.previous_cycles_missing_payments }} precedent(s)
+            {% endif %}
           {% else %}
             0 FCFA
           {% endif %}

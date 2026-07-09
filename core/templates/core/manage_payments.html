@@ -25,13 +25,16 @@
   </form>
 
   <section class="panel admin-list-panel late-members-panel" style="margin-bottom: 18px;">
-    <h2>Membres en retard sur le cycle en cours</h2>
+    <h2>Membres en retard cumule sur le cycle en cours</h2>
     <div class="list">
       {% for member in late_members %}
         <div class="row admin-row">
           <div>
             <span>{{ member.full_name }}</span>
-            <small>{{ member.group.name }} | Rang : {{ member.rank }} | Cycle {{ member.current_cycle_number }} | {{ member.current_cycle_missing_payments }} versement(s) manquant(s)</small>
+            <small>
+              {{ member.group.name }} | Rang : {{ member.rank }} | Cycle {{ member.current_cycle_number }} | {{ member.current_cycle_missing_payments }} versement(s) manquant(s)
+              {% if member.previous_cycles_missing_payments > 0 %}| dont {{ member.previous_cycles_missing_payments }} du/des cycle(s) precedent(s){% endif %}
+            </small>
           </div>
           <div class="admin-row-meta">
             <em>{{ member.current_cycle_late_amount }} FCFA</em>
@@ -43,7 +46,7 @@
           </div>
         </div>
       {% empty %}
-        <p class="empty-state">Aucun membre en retard sur le cycle en cours.</p>
+        <p class="empty-state">Aucun membre en retard cumule sur le cycle en cours.</p>
       {% endfor %}
     </div>
   </section>

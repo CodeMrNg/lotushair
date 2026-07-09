@@ -117,7 +117,7 @@
       </div>
       {% if member.current_cycle_missing_payments > 0 %}
         <strong>{{ member.current_cycle_late_amount }} FCFA</strong>
-        <small>{{ member.current_cycle_missing_payments }} versement(s) en retard</small>
+        <small>{{ member.current_cycle_missing_payments }} versement(s) en retard cumule</small>
       {% elif member.current_cycle_ahead_payments > 0 %}
         <strong>{{ member.current_cycle_ahead_amount }} FCFA</strong>
         <small>{{ member.current_cycle_ahead_payments }} versement(s) en avance</small>
@@ -288,7 +288,10 @@
     <div class="reminder">
       {% if member.current_cycle_missing_payments > 0 %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <p>Cycle en cours : <strong>{{ member.current_cycle_missing_payments }} versement(s), {{ member.current_cycle_late_amount }} FCFA en retard</strong>.</p>
+        <p>
+          Cycle en cours : <strong>{{ member.current_cycle_missing_payments }} versement(s), {{ member.current_cycle_late_amount }} FCFA en retard cumule</strong>
+          {% if member.previous_cycles_missing_payments > 0 %}, dont {{ member.previous_cycles_missing_payments }} du/des cycle(s) precedent(s){% endif %}.
+        </p>
       {% elif member.current_cycle_ahead_payments > 0 %}
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
         <p>Cycle en cours : <strong>{{ member.current_cycle_ahead_payments }} versement(s), {{ member.current_cycle_ahead_amount }} FCFA en avance</strong>.</p>
