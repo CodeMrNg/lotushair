@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'core.middleware.AutomaticSQLiteBackupMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -94,6 +95,16 @@ DATABASES = {
         },
     }
 }
+
+SQLITE_BACKUP_AUTO_ENABLED = (
+    os.environ.get("SQLITE_BACKUP_AUTO_ENABLED", "True").lower() in {"1", "true", "yes", "on"}
+    and not TESTING
+)
+SQLITE_BACKUP_DIR = os.environ.get("SQLITE_BACKUP_DIR", "backups")
+SQLITE_BACKUP_KEEP = int(os.environ.get("SQLITE_BACKUP_KEEP", "6"))
+SQLITE_BACKUP_INTERVAL_SECONDS = int(os.environ.get("SQLITE_BACKUP_INTERVAL_SECONDS", str(60 * 60 * 20)))
+SQLITE_BACKUP_TIMEOUT_SECONDS = int(os.environ.get("SQLITE_BACKUP_TIMEOUT_SECONDS", "30"))
+SQLITE_BACKUP_LOCK_STALE_SECONDS = int(os.environ.get("SQLITE_BACKUP_LOCK_STALE_SECONDS", str(60 * 60)))
 
 
 # Password validation

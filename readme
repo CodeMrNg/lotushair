@@ -5,3 +5,23 @@ Acces de test :
 
 Membre : A4F92C, 9B11EF, FF09DA, C0A112, 86EE7F
 Admin : admin / admin1234
+
+Sauvegarde SQLite :
+
+L'application cree automatiquement une sauvegarde selon les reglages dans lotushair/settings.py :
+SQLITE_BACKUP_AUTO_ENABLED = active/desactive les sauvegardes automatiques
+SQLITE_BACKUP_DIR = dossier des sauvegardes
+SQLITE_BACKUP_KEEP = nombre de sauvegardes conservees
+SQLITE_BACKUP_INTERVAL_SECONDS = delai minimal entre deux sauvegardes automatiques
+SQLITE_BACKUP_TIMEOUT_SECONDS = delai d'attente SQLite pendant la sauvegarde
+
+Creer une sauvegarde manuelle :
+python manage.py backup_sqlite
+
+Garder seulement les 6 dernieres sauvegardes :
+python manage.py backup_sqlite --keep 6
+
+Sur PythonAnywhere, ajouter une tache planifiee quotidienne avec :
+cd /home/lotushair/lotushair && /home/lotushair/.virtualenvs/venv/bin/python manage.py backup_sqlite --keep 6
+
+Les sauvegardes sont ecrites dans le dossier backups/ et ne doivent pas etre versionnees avec Git.
